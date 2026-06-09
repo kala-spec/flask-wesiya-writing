@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Message System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+   <nav class="pages">
+    <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="/" class="logout-link">Logout</a></li>
+    </ul>
+</nav>
+
+    <section class="dashboard-header">
+        <h1>Send a Message</h1>
+        <p>Choose whether you want to send a text message or upload a voice note.</p>
+    </section>
+
+    <main class="message-wrapper">
+
+        <!-- Voice Message Form -->
+        <form action="#" method="POST" enctype="multipart/form-data" class="message-card">
+            <h2>Voice Note</h2>
+            <p>Upload an audio file from your computer.</p>
+
+            <label>Choose Voice File</label>
+            <input type="file" name="voice" accept="audio/*">
+
+            <button type="submit">Send Voice</button>
+        </form>
+
+        <!-- Text Message Form -->
+       <form action="/submit_note" method="POST" class="message-card">
+    <h2>Text Message</h2>
+    <p>Write your daily note below.</p>
+
+    <label>Your Message</label>
+    <textarea name="daily_note" rows="6" placeholder="Write your message here..." required></textarea>
+
+    <button type="submit">Save Message</button>
+</form>
+
+    </main>
+
+</body>
+</html>

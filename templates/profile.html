@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Message System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <nav class="pages">
+        <ul>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="/logout" class="logout-link">Logout</a></li>
+        </ul>
+    </nav>
+
+    <section class="dashboard-header">
+        <h1>User Profile</h1>
+        <p>Your saved daily notes will appear here after you submit them.</p>
+    </section>
+
+    <main class="profile-wrapper">
+
+        {% if notes %}
+
+            <div class="profile-card profile-summary">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        {{ notes[0].email[0] | upper }}
+                    </div>
+
+                    <div>
+                        <h2>{{ notes[0].email }}</h2>
+                        <p>Registered User</p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="notes-section">
+                <h2>Saved Daily Notes</h2>
+
+                {% for item in notes %}
+                    <div class="profile-card note-card">
+
+                        <div class="profile-row">
+                            <span>Email</span>
+                            <p>{{ item.email }}</p>
+                        </div>
+
+                        <div class="profile-row">
+                            <span>Daily Note</span>
+                            <p>{{ item.note }}</p>
+                        </div>
+
+                        <div class="profile-row">
+                            <span>Submitted At</span>
+                            <p>{{ item.submitted_at }}</p>
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </section>
+
+        {% else %}
+
+            <div class="profile-card empty-profile">
+                <h2>No Notes Yet</h2>
+                <p>
+                    Your profile is currently empty. After you write and submit a daily note,
+                    your information will appear here.
+                </p>
+
+                <a href="/dashboard" class="main-link">Go to Dashboard</a>
+            </div>
+
+        {% endif %}
+
+    </main>
+
+</body>
+</html>
