@@ -45,26 +45,24 @@
             <section class="notes-section">
                 <h2>Saved Daily Notes</h2>
 
-                {% for item in notes %}
-                    <div class="profile-card note-card">
+               {% for item in notes %}
+    <div class="profile-card note-card">
+        <div class="profile-row">
+            <span>Email</span>
+            <p>{{ item.email }}</p>
+        </div>
 
-                        <div class="profile-row">
-                            <span>Email</span>
-                            <p>{{ item.email }}</p>
-                        </div>
+        <div class="profile-row">
+            <span>Daily Note</span>
+            <p>{{ item.daily_note }}</p>
+        </div>
 
-                        <div class="profile-row">
-                            <span>Daily Note</span>
-                            <p>{{ item.note }}</p>
-                        </div>
-
-                        <div class="profile-row">
-                            <span>Submitted At</span>
-                            <p>{{ item.submitted_at }}</p>
-                        </div>
-
-                    </div>
-                {% endfor %}
+        <div class="profile-row">
+            <span>Submitted At</span>
+            <p>{{ item.created_at }}</p>
+        </div>
+    </div>
+{% endfor %}
             </section>
 
         {% else %}

@@ -1,102 +1,94 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from openpyxl import Workbook, load_workbook
 from datetime import datetime
+import sqlite3
 import os
 
 app = Flask(__name__)
 app.secret_key = "my_secret_key_for_learning"
 
-EXCEL_FILE = "users.xlsx"
+DATABASE = "wesiya.db"
 
 
-def create_excel_file():
-    if not os.path.exists(EXCEL_FILE):
-        workbook = Workbook()
-        sheet = workbook.active
-        sheet.title = "Users"
+def get_db_connection():
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
 
-        sheet.append([
-            "Email",
-            "Password",
-            "Daily Note",
-            "Submitted At"
-        ])
 
-        workbook.save(EXCEL_FILE)
+def create_tables():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            daily_note TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
 
 def find_user_by_email(email):
-    create_excel_file()
+    connection = get_db_connection()
+    user = connection.execute(
+        "SELECT * FROM users WHERE email = ?",
+        (email,)
+    ).fetchone()
+    connection.close()
 
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
-
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        saved_email = row[0]
-        saved_password = row[1]
-
-        if saved_email == email:
-            return {
-                "email": saved_email,
-                "password": saved_password
-            }
-
-    return None
-
-def user_exists(email):
-    create_excel_file()
-
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
-
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        saved_email = row[0]
-
-        if saved_email == email:
-            return True
-
-    return False
+    return user
 
 
-def check_login(email, password):
-    create_excel_file()
+def create_user(email, password):
+    connection = get_db_connection()
 
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
+    connection.execute(
+        "INSERT INTO users (email, password, created_at) VALUES (?, ?, ?)",
+        (email, password, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    )
 
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        saved_email = row[0]
-        saved_password = row[1]
-
-        if saved_email == email and saved_password == password:
-            return True
-
-    return False
+    connection.commit()
+    connection.close()
 
 
-def get_user_notes():
-    create_excel_file()
+def save_note(user_id, daily_note):
+    connection = get_db_connection()
 
-    email = session.get("email")
+    connection.execute(
+        "INSERT INTO notes (user_id, daily_note, created_at) VALUES (?, ?, ?)",
+        (user_id, daily_note, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    )
 
-    if not email:
-        return []
+    connection.commit()
+    connection.close()
 
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
 
-    notes = []
+def get_notes_by_user(user_id):
+    connection = get_db_connection()
 
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        saved_email = row[0]
-        daily_note = row[2]
-        submitted_at = row[3]
+    notes = connection.execute("""
+        SELECT notes.id, notes.daily_note, notes.created_at, users.email
+        FROM notes
+        JOIN users ON notes.user_id = users.id
+        WHERE notes.user_id = ?
+        ORDER BY notes.id DESC
+    """, (user_id,)).fetchall()
 
-        if saved_email == email and daily_note != "Account created":
-            notes.append({
-                "email": saved_email,
-                "note": daily_note,
-                "submitted_at": submitted_at
-            })
+    connection.close()
 
     return notes
 
@@ -108,7 +100,7 @@ def login():
 
 @app.route("/home")
 def home():
-    if "email" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
     return render_template("home.html")
@@ -116,7 +108,7 @@ def home():
 
 @app.route("/dashboard")
 def dashboard():
-    if "email" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
     return render_template("dashboard.html")
@@ -124,10 +116,11 @@ def dashboard():
 
 @app.route("/profile")
 def profile():
-    if "email" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
-    notes = get_user_notes()
+    notes = get_notes_by_user(session["user_id"])
+
     return render_template("profile.html", notes=notes)
 
 
@@ -138,7 +131,6 @@ def login_user():
 
     user = find_user_by_email(email)
 
-    # Case 1: user does not exist
     if user is None:
         return render_template(
             "login.html",
@@ -146,76 +138,50 @@ def login_user():
             signup_email=email
         )
 
-    # Case 2: user exists but password is wrong
     if user["password"] != password:
         return render_template(
             "login.html",
             error="Wrong password. Please try again."
         )
 
-    # Case 3: email and password are correct
-    session["email"] = email
-    session["password"] = password
+    session["user_id"] = user["id"]
+    session["email"] = user["email"]
 
     return redirect(url_for("home"))
+
 
 @app.route("/signup", methods=["POST"])
 def signup_user():
     email = request.form.get("email")
     password = request.form.get("password")
 
-    create_excel_file()
+    existing_user = find_user_by_email(email)
 
-    user = find_user_by_email(email)
-
-    # If user already exists, do not create duplicate account
-    if user is not None:
+    if existing_user is not None:
         return render_template(
             "login.html",
-            error="This email already has an account. Please login instead."
+            error="This email already exists. Please login instead."
         )
 
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
+    create_user(email, password)
 
-    sheet.append([
-        email,
-        password,
-        "Account created",
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ])
+    new_user = find_user_by_email(email)
 
-    workbook.save(EXCEL_FILE)
-
-    session["email"] = email
-    session["password"] = password
+    session["user_id"] = new_user["id"]
+    session["email"] = new_user["email"]
 
     return redirect(url_for("home"))
 
 
 @app.route("/submit_note", methods=["POST"])
 def submit_note():
-    if "email" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
     daily_note = request.form.get("daily_note")
 
-    email = session.get("email")
-    password = session.get("password")
-
-    create_excel_file()
-
-    workbook = load_workbook(EXCEL_FILE)
-    sheet = workbook.active
-
-    sheet.append([
-        email,
-        password,
-        daily_note,
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ])
-
-    workbook.save(EXCEL_FILE)
+    if daily_note:
+        save_note(session["user_id"], daily_note)
 
     return redirect(url_for("profile"))
 
@@ -227,4 +193,5 @@ def logout():
 
 
 if __name__ == "__main__":
+    create_tables()
     app.run(debug=True)
