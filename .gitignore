@@ -4,3 +4,13 @@ __pycache__/
 users.xlsx
 daily_notes.xlsx
 .env
+venv/
+__pycache__/
+*.pyc
+*.db
+wesiya.db
+.env
+uploads/
+*.webm
+*.mp3
+*.wav
