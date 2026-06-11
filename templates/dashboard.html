@@ -48,6 +48,100 @@
 
     <button type="submit">Save Message</button>
 </form>
+<form class="message-card" id="recordForm">
+    <h2>Record Voice Note</h2>
+    <p>Record your voice directly from the browser and save it.</p>
+
+    <button type="button" id="startRecord">Start Recording</button>
+    <br><br>
+
+    <button type="button" id="stopRecord" disabled>Stop Recording</button>
+    <br><br>
+
+    <audio id="audioPlayback" controls style="width: 100%; display: none;"></audio>
+    <br><br>
+
+    <button type="button" id="sendRecording" disabled>Save Voice Recording</button>
+
+    <p id="recordStatus"></p>
+</form>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let recordedBlob;
+
+    const startButton = document.getElementById("startRecord");
+    const stopButton = document.getElementById("stopRecord");
+    const sendButton = document.getElementById("sendRecording");
+    const audioPlayback = document.getElementById("audioPlayback");
+    const recordStatus = document.getElementById("recordStatus");
+
+    startButton.addEventListener("click", async function () {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = function (event) {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = function () {
+                recordedBlob = new Blob(audioChunks, { type: "audio/webm" });
+                const audioUrl = URL.createObjectURL(recordedBlob);
+
+                audioPlayback.src = audioUrl;
+                audioPlayback.style.display = "block";
+
+                sendButton.disabled = false;
+                recordStatus.innerText = "Recording ready to save.";
+            };
+
+            mediaRecorder.start();
+
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            sendButton.disabled = true;
+
+            recordStatus.innerText = "Recording...";
+        } catch (error) {
+            recordStatus.innerText = "Microphone permission denied or not available.";
+        }
+    });
+
+    stopButton.addEventListener("click", function () {
+        mediaRecorder.stop();
+
+        startButton.disabled = false;
+        stopButton.disabled = true;
+
+        recordStatus.innerText = "Recording stopped.";
+    });
+
+    sendButton.addEventListener("click", async function () {
+        if (!recordedBlob) {
+            recordStatus.innerText = "No recording found.";
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("voice_recording", recordedBlob, "voice_note.webm");
+
+        const response = await fetch("/save_voice_recording", {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            const result = await response.text();
+            recordStatus.innerText = result;
+        }
+    });
+</script>
 
     </main>
 

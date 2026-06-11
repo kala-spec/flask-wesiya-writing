@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from werkzeug.utils import secure_filename
 from datetime import datetime
 import sqlite3
 import os
@@ -7,13 +8,25 @@ app = Flask(__name__)
 app.secret_key = "my_secret_key_for_learning"
 
 DATABASE = "wesiya.db"
+UPLOAD_FOLDER = "uploads"
 
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+
+# -----------------------------
+# DATABASE CONNECTION
+# -----------------------------
 
 def get_db_connection():
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
     return connection
 
+
+# -----------------------------
+# CREATE DATABASE TABLES
+# -----------------------------
 
 def create_tables():
     connection = get_db_connection()
@@ -38,18 +51,34 @@ def create_tables():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS voice_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            filename TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
     connection.commit()
     connection.close()
 
 
+# -----------------------------
+# USER FUNCTIONS
+# -----------------------------
+
 def find_user_by_email(email):
     connection = get_db_connection()
+
     user = connection.execute(
         "SELECT * FROM users WHERE email = ?",
         (email,)
     ).fetchone()
-    connection.close()
 
+    connection.close()
     return user
 
 
@@ -58,26 +87,38 @@ def create_user(email, password):
 
     connection.execute(
         "INSERT INTO users (email, password, created_at) VALUES (?, ?, ?)",
-        (email, password, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        (
+            email,
+            password,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
     )
 
     connection.commit()
     connection.close()
 
 
-def save_note(user_id, daily_note):
+# -----------------------------
+# TEXT NOTE FUNCTIONS
+# -----------------------------
+
+def save_text_note(user_id, daily_note):
     connection = get_db_connection()
 
     connection.execute(
         "INSERT INTO notes (user_id, daily_note, created_at) VALUES (?, ?, ?)",
-        (user_id, daily_note, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        (
+            user_id,
+            daily_note,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
     )
 
     connection.commit()
     connection.close()
 
 
-def get_notes_by_user(user_id):
+def get_text_notes_by_user(user_id):
     connection = get_db_connection()
 
     notes = connection.execute("""
@@ -89,9 +130,49 @@ def get_notes_by_user(user_id):
     """, (user_id,)).fetchall()
 
     connection.close()
-
     return notes
 
+
+# -----------------------------
+# VOICE NOTE FUNCTIONS
+# -----------------------------
+
+def save_voice_note(user_id, filename, file_path):
+    connection = get_db_connection()
+
+    connection.execute(
+        "INSERT INTO voice_notes (user_id, filename, file_path, created_at) VALUES (?, ?, ?, ?)",
+        (
+            user_id,
+            filename,
+            file_path,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_voice_notes_by_user(user_id):
+    connection = get_db_connection()
+
+    voice_notes = connection.execute("""
+        SELECT voice_notes.id, voice_notes.filename, voice_notes.file_path,
+               voice_notes.created_at, users.email
+        FROM voice_notes
+        JOIN users ON voice_notes.user_id = users.id
+        WHERE voice_notes.user_id = ?
+        ORDER BY voice_notes.id DESC
+    """, (user_id,)).fetchall()
+
+    connection.close()
+    return voice_notes
+
+
+# -----------------------------
+# PAGE ROUTES
+# -----------------------------
 
 @app.route("/")
 def login():
@@ -119,10 +200,28 @@ def profile():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    notes = get_notes_by_user(session["user_id"])
+    notes = get_text_notes_by_user(session["user_id"])
+    voice_notes = get_voice_notes_by_user(session["user_id"])
 
-    return render_template("profile.html", notes=notes)
+    return render_template(
+        "profile.html",
+        notes=notes,
+        voice_notes=voice_notes
+    )
 
+
+# This route lets the profile page play voice files from uploads/
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+# -----------------------------
+# LOGIN AND SIGNUP ROUTES
+# -----------------------------
 
 @app.route("/login", methods=["POST"])
 def login_user():
@@ -173,6 +272,16 @@ def signup_user():
     return redirect(url_for("home"))
 
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# -----------------------------
+# SUBMIT TEXT NOTE
+# -----------------------------
+
 @app.route("/submit_note", methods=["POST"])
 def submit_note():
     if "user_id" not in session:
@@ -181,16 +290,46 @@ def submit_note():
     daily_note = request.form.get("daily_note")
 
     if daily_note:
-        save_note(session["user_id"], daily_note)
+        save_text_note(session["user_id"], daily_note)
 
     return redirect(url_for("profile"))
 
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+# -----------------------------
+# SAVE DIRECT VOICE RECORDING
+# -----------------------------
 
+@app.route("/save_voice_recording", methods=["POST"])
+def save_voice_recording():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    voice_file = request.files.get("voice_recording")
+
+    if voice_file is None:
+        return "No voice recording received."
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = secure_filename(
+        f"user_{session['user_id']}_voice_{timestamp}.webm"
+    )
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    voice_file.save(file_path)
+
+    save_voice_note(
+        session["user_id"],
+        filename,
+        file_path
+    )
+
+    return redirect(url_for("profile"))
+
+
+# -----------------------------
+# RUN APP
+# -----------------------------
 
 if __name__ == "__main__":
     create_tables()

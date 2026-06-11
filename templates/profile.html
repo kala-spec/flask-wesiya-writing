@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile | Message System</title>
+    <title>Profile | Wesiya Writing</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
@@ -22,47 +22,111 @@
 
     <section class="dashboard-header">
         <h1>User Profile</h1>
-        <p>Your saved daily notes will appear here after you submit them.</p>
+        <p>Your saved text notes and voice notes will appear here.</p>
     </section>
 
     <main class="profile-wrapper">
 
-        {% if notes %}
+        {% if notes or voice_notes %}
 
             <div class="profile-card profile-summary">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        {{ notes[0].email[0] | upper }}
+                        {% if notes %}
+                            {{ notes[0].email[0] | upper }}
+                        {% elif voice_notes %}
+                            {{ voice_notes[0].email[0] | upper }}
+                        {% else %}
+                            U
+                        {% endif %}
                     </div>
 
                     <div>
-                        <h2>{{ notes[0].email }}</h2>
+                        <h2>
+                            {% if notes %}
+                                {{ notes[0].email }}
+                            {% elif voice_notes %}
+                                {{ voice_notes[0].email }}
+                            {% else %}
+                                User
+                            {% endif %}
+                        </h2>
                         <p>Registered User</p>
                     </div>
                 </div>
             </div>
 
             <section class="notes-section">
-                <h2>Saved Daily Notes</h2>
+                <h2>Saved Text Notes</h2>
 
-               {% for item in notes %}
-    <div class="profile-card note-card">
-        <div class="profile-row">
-            <span>Email</span>
-            <p>{{ item.email }}</p>
-        </div>
+                {% if notes %}
+                    {% for item in notes %}
+                        <div class="profile-card note-card">
 
-        <div class="profile-row">
-            <span>Daily Note</span>
-            <p>{{ item.daily_note }}</p>
-        </div>
+                            <div class="profile-row">
+                                <span>Email</span>
+                                <p>{{ item.email }}</p>
+                            </div>
 
-        <div class="profile-row">
-            <span>Submitted At</span>
-            <p>{{ item.created_at }}</p>
-        </div>
-    </div>
-{% endfor %}
+                            <div class="profile-row">
+                                <span>Text Note</span>
+                                <p>{{ item.daily_note }}</p>
+                            </div>
+
+                            <div class="profile-row">
+                                <span>Submitted At</span>
+                                <p>{{ item.created_at }}</p>
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="profile-card empty-profile">
+                        <h2>No Text Notes Yet</h2>
+                        <p>You have not submitted any text notes yet.</p>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="notes-section">
+                <h2>Saved Voice Notes</h2>
+
+                {% if voice_notes %}
+                    {% for voice in voice_notes %}
+                        <div class="profile-card note-card">
+
+                            <div class="profile-row">
+                                <span>Email</span>
+                                <p>{{ voice.email }}</p>
+                            </div>
+
+                            <div class="profile-row">
+                                <span>Voice File</span>
+                                <p>{{ voice.filename }}</p>
+                            </div>
+
+                            <div class="profile-row">
+                                <span>Play Voice Note</span>
+
+                                <audio controls class="voice-player">
+                                    <source src="{{ url_for('uploaded_file', filename=voice.filename) }}" type="audio/webm">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+
+                            <div class="profile-row">
+                                <span>Recorded At</span>
+                                <p>{{ voice.created_at }}</p>
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="profile-card empty-profile">
+                        <h2>No Voice Notes Yet</h2>
+                        <p>You have not recorded any voice notes yet.</p>
+                    </div>
+                {% endif %}
             </section>
 
         {% else %}
@@ -70,8 +134,8 @@
             <div class="profile-card empty-profile">
                 <h2>No Notes Yet</h2>
                 <p>
-                    Your profile is currently empty. After you write and submit a daily note,
-                    your information will appear here.
+                    Your profile is currently empty. After you submit a text note
+                    or record a voice note, your information will appear here.
                 </p>
 
                 <a href="/dashboard" class="main-link">Go to Dashboard</a>
