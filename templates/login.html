@@ -8,6 +8,13 @@
 </head>
 
 <body>
+    {% if error %}
+    <p class="error-message">{{ error }}</p>
+{% endif %}
+
+{% if signup_message %}
+    <p class="signup-message">{{ signup_message }}</p>
+{% endif %}
     <nav class="pages">
     <ul>
         <li><a href="/home">Home</a></li>
@@ -49,7 +56,7 @@
             <form action="/signup" method="POST">
 
                 <label>Email</label>
-                <input type="email" name="email" placeholder="Create email" required>
+                <input type="email" name="email" value="{{ signup_email or '' }}" placeholder="Create email" required>
 
                 <label>Password</label>
                 <input type="password" name="password" placeholder="Create password" required>

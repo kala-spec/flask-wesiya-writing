@@ -360,3 +360,26 @@ textarea {
     font-weight: bold;
     border: 1px solid #f5c2c7;
 }
+.error-message {
+    background: #f8d7da;
+    color: #842029;
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin: 20px auto;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #f5c2c7;
+    max-width: 600px;
+}
+
+.signup-message {
+    background: #fff3cd;
+    color: #664d03;
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin: 20px auto;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #ffecb5;
+    max-width: 600px;
+}

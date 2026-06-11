@@ -24,6 +24,23 @@ def create_excel_file():
 
         workbook.save(EXCEL_FILE)
 
+def find_user_by_email(email):
+    create_excel_file()
+
+    workbook = load_workbook(EXCEL_FILE)
+    sheet = workbook.active
+
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        saved_email = row[0]
+        saved_password = row[1]
+
+        if saved_email == email:
+            return {
+                "email": saved_email,
+                "password": saved_password
+            }
+
+    return None
 
 def user_exists(email):
     create_excel_file()
@@ -119,16 +136,28 @@ def login_user():
     email = request.form.get("email")
     password = request.form.get("password")
 
-    if check_login(email, password):
-        session["email"] = email
-        session["password"] = password
-        return redirect(url_for("home"))
-    else:
+    user = find_user_by_email(email)
+
+    # Case 1: user does not exist
+    if user is None:
         return render_template(
             "login.html",
-            error="Incorrect email or password. Please try again."
+            signup_message="No account found with this email. Please sign up first.",
+            signup_email=email
         )
 
+    # Case 2: user exists but password is wrong
+    if user["password"] != password:
+        return render_template(
+            "login.html",
+            error="Wrong password. Please try again."
+        )
+
+    # Case 3: email and password are correct
+    session["email"] = email
+    session["password"] = password
+
+    return redirect(url_for("home"))
 
 @app.route("/signup", methods=["POST"])
 def signup_user():
@@ -137,10 +166,13 @@ def signup_user():
 
     create_excel_file()
 
-    if user_exists(email):
+    user = find_user_by_email(email)
+
+    # If user already exists, do not create duplicate account
+    if user is not None:
         return render_template(
             "login.html",
-            error="This email already exists. Please login instead."
+            error="This email already has an account. Please login instead."
         )
 
     workbook = load_workbook(EXCEL_FILE)
