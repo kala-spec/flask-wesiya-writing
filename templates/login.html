@@ -3,40 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Message System</title>
+    <title>Login | Wesiya</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
-    {% if error %}
-    <p class="error-message">{{ error }}</p>
-{% endif %}
 
-{% if signup_message %}
-    <p class="signup-message">{{ signup_message }}</p>
-{% endif %}
-    <nav class="pages">
-    <ul>
-        <li><a href="/home">Home</a></li>
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="/" class="logout-link">Logout</a></li>
-    </ul>
-</nav>
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    {% if signup_message %}
+        <p class="signup-message">{{ signup_message }}</p>
+    {% endif %}
 
     <div class="container">
-        {% if error %}
-    <p class="error-message">{{ error }}</p>
-{% endif %}
-        <!-- LOGIN FORM -->
+
         <div class="box">
             <h2>Login</h2>
-            <p class="small-text">Welcome back. Login to continue.</p>
+            <p class="small-text">Welcome back to Wesiya. Login to continue.</p>
 
             <form action="/login" method="POST">
-
                 <label>Email</label>
                 <input type="email" name="email" placeholder="Enter your email" required>
 
@@ -44,17 +31,14 @@
                 <input type="password" name="password" placeholder="Enter your password" required>
 
                 <button type="submit">Login</button>
-
             </form>
         </div>
 
-        <!-- SIGNUP FORM -->
         <div class="box">
             <h2>Sign Up</h2>
-            <p class="small-text">Create an account to use the message system.</p>
+            <p class="small-text">Create your Wesiya account to save your writing notes and voice records.</p>
 
             <form action="/signup" method="POST">
-
                 <label>Email</label>
                 <input type="email" name="email" value="{{ signup_email or '' }}" placeholder="Create email" required>
 
@@ -62,7 +46,6 @@
                 <input type="password" name="password" placeholder="Create password" required>
 
                 <button type="submit">Sign Up</button>
-
             </form>
         </div>
 

@@ -3,73 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Message System</title>
+    <title>Dashboard | Wesiya</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
 
-   <nav class="pages">
-    <ul>
-        <li><a href="/home">Home</a></li>
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="/" class="logout-link">Logout</a></li>
-    </ul>
-</nav>
+    <nav class="pages">
+        <ul>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/profile">My Wesiya</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="/logout" class="logout-link">Logout</a></li>
+        </ul>
+    </nav>
 
     <section class="dashboard-header">
-        <h1>Send a Message</h1>
-        <p>Choose whether you want to send a text message or upload a voice note.</p>
+        <h1>Wesiya Dashboard</h1>
+        <p>Write your text notes or record voice notes and save them to your profile.</p>
     </section>
 
     <main class="message-wrapper">
 
-        <!-- Voice Message Form -->
-        <form action="#" method="POST" enctype="multipart/form-data" class="message-card">
-            <h2>Voice Note</h2>
-            <p>Upload an audio file from your computer.</p>
+        <form action="/submit_note" method="POST" class="message-card">
+            <h2>Text Note</h2>
+            <p>Write your daily wesiya.</p>
 
-            <label>Choose Voice File</label>
-            <input type="file" name="voice" accept="audio/*">
+            <label>Your Note</label>
+            <textarea name="daily_note" rows="6" placeholder="Write your wesiya here..." required></textarea>
 
-            <button type="submit">Send Voice</button>
+            <button type="submit">Save Text Note</button>
         </form>
 
-        <!-- Text Message Form -->
-       <form action="/submit_note" method="POST" class="message-card">
-    <h2>Text Message</h2>
-    <p>Write your daily note below.</p>
+        <form class="message-card" id="recordForm">
+            <h2>Voice Recording</h2>
+            <p>Record your wesiya.</p>
 
-    <label>Your Message</label>
-    <textarea name="daily_note" rows="6" placeholder="Write your message here..." required></textarea>
+            <button type="button" id="startRecord">Start Recording</button>
+            <br><br>
 
-    <button type="submit">Save Message</button>
-</form>
-<form class="message-card" id="recordForm">
-    <h2>Record Voice Note</h2>
-    <p>Record your voice directly from the browser and save it.</p>
+            <button type="button" id="stopRecord" disabled>Stop Recording</button>
+            <br><br>
 
-    <button type="button" id="startRecord">Start Recording</button>
-    <br><br>
+            <audio id="audioPlayback" controls style="width: 100%; display: none;"></audio>
+            <br><br>
 
-    <button type="button" id="stopRecord" disabled>Stop Recording</button>
-    <br><br>
+            <button type="button" id="sendRecording" disabled>Save Voice Recording</button>
 
-    <audio id="audioPlayback" controls style="width: 100%; display: none;"></audio>
-    <br><br>
+            <p id="recordStatus"></p>
+        </form>
 
-    <button type="button" id="sendRecording" disabled>Save Voice Recording</button>
+    </main>
 
-    <p id="recordStatus"></p>
-</form>
-
-<script>
+    <script>
     let mediaRecorder;
     let audioChunks = [];
     let recordedBlob;
+    let currentStream;
 
     const startButton = document.getElementById("startRecord");
     const stopButton = document.getElementById("stopRecord");
@@ -79,17 +71,43 @@
 
     startButton.addEventListener("click", async function () {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioSettings = {
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 48000,
+                    channelCount: 1
+                }
+            };
 
-            mediaRecorder = new MediaRecorder(stream);
+            currentStream = await navigator.mediaDevices.getUserMedia(audioSettings);
+
+            let options = {};
+
+            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+                options = {
+                    mimeType: "audio/webm;codecs=opus",
+                    audioBitsPerSecond: 128000
+                };
+            } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+                options = {
+                    mimeType: "audio/webm",
+                    audioBitsPerSecond: 128000
+                };
+            }
+
+            mediaRecorder = new MediaRecorder(currentStream, options);
             audioChunks = [];
 
             mediaRecorder.ondataavailable = function (event) {
-                audioChunks.push(event.data);
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
             };
 
             mediaRecorder.onstop = function () {
-                recordedBlob = new Blob(audioChunks, { type: "audio/webm" });
+                recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
                 const audioUrl = URL.createObjectURL(recordedBlob);
 
                 audioPlayback.src = audioUrl;
@@ -97,6 +115,10 @@
 
                 sendButton.disabled = false;
                 recordStatus.innerText = "Recording ready to save.";
+
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
             };
 
             mediaRecorder.start();
@@ -105,14 +127,17 @@
             stopButton.disabled = false;
             sendButton.disabled = true;
 
-            recordStatus.innerText = "Recording...";
+            recordStatus.innerText = "Recording in higher quality...";
         } catch (error) {
             recordStatus.innerText = "Microphone permission denied or not available.";
+            console.log(error);
         }
     });
 
     stopButton.addEventListener("click", function () {
-        mediaRecorder.stop();
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
 
         startButton.disabled = false;
         stopButton.disabled = true;
@@ -129,6 +154,8 @@
         const formData = new FormData();
         formData.append("voice_recording", recordedBlob, "voice_note.webm");
 
+        recordStatus.innerText = "Saving voice recording...";
+
         const response = await fetch("/save_voice_recording", {
             method: "POST",
             body: formData
@@ -142,8 +169,6 @@
         }
     });
 </script>
-
-    </main>
 
 </body>
 </html>

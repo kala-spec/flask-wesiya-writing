@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile | Wesiya Writing</title>
+    <title>My Wesiya</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
@@ -13,7 +13,7 @@
         <ul>
             <li><a href="/home">Home</a></li>
             <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/profile">Profile</a></li>
+            <li><a href="/profile">My Wesiya</a></li>
             <li><a href="#">About</a></li>
             <li><a href="#">Contact</a></li>
             <li><a href="/logout" class="logout-link">Logout</a></li>
@@ -21,8 +21,8 @@
     </nav>
 
     <section class="dashboard-header">
-        <h1>User Profile</h1>
-        <p>Your saved text notes and voice notes will appear here.</p>
+        <h1>My Wesiya</h1>
+        <p>Your personal space to record and write your wesiya after death!.</p>
     </section>
 
     <main class="profile-wrapper">
@@ -37,7 +37,7 @@
                         {% elif voice_notes %}
                             {{ voice_notes[0].email[0] | upper }}
                         {% else %}
-                            U
+                            W
                         {% endif %}
                     </div>
 
@@ -48,16 +48,16 @@
                             {% elif voice_notes %}
                                 {{ voice_notes[0].email }}
                             {% else %}
-                                User
+                                Wesiya User
                             {% endif %}
                         </h2>
-                        <p>Registered User</p>
+                        <p>Your Wesiya account</p>
                     </div>
                 </div>
             </div>
 
             <section class="notes-section">
-                <h2>Saved Text Notes</h2>
+                <h2>My Text Notes</h2>
 
                 {% if notes %}
                     {% for item in notes %}
@@ -74,7 +74,7 @@
                             </div>
 
                             <div class="profile-row">
-                                <span>Submitted At</span>
+                                <span>Saved At</span>
                                 <p>{{ item.created_at }}</p>
                             </div>
 
@@ -83,13 +83,13 @@
                 {% else %}
                     <div class="profile-card empty-profile">
                         <h2>No Text Notes Yet</h2>
-                        <p>You have not submitted any text notes yet.</p>
+                        <p>You have not saved any text notes in your Wesiya space yet.</p>
                     </div>
                 {% endif %}
             </section>
 
             <section class="notes-section">
-                <h2>Saved Voice Notes</h2>
+                <h2>My Voice Notes</h2>
 
                 {% if voice_notes %}
                     {% for voice in voice_notes %}
@@ -124,7 +124,7 @@
                 {% else %}
                     <div class="profile-card empty-profile">
                         <h2>No Voice Notes Yet</h2>
-                        <p>You have not recorded any voice notes yet.</p>
+                        <p>You have not recorded any voice notes in your Wesiya space yet.</p>
                     </div>
                 {% endif %}
             </section>
@@ -132,10 +132,10 @@
         {% else %}
 
             <div class="profile-card empty-profile">
-                <h2>No Notes Yet</h2>
+                <h2>My Wesiya Is Empty</h2>
                 <p>
-                    Your profile is currently empty. After you submit a text note
-                    or record a voice note, your information will appear here.
+                    Your Wesiya space is currently empty. After you save a text note
+                    or record a voice note, your saved work will appear here.
                 </p>
 
                 <a href="/dashboard" class="main-link">Go to Dashboard</a>

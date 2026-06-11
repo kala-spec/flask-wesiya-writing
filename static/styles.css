@@ -5,21 +5,21 @@
 }
 
 :root {
-    --brown-dark: #3a332e;
-    --brown-main: #7a4f32;
-    --brown-hover: #5f3b25;
-    --brown-title: #4b3324;
-    --gray-bg: #d8d2ca;
-    --card-bg: #f7f5f2;
-    --gray-text: #625951;
-    --border: #c8beb4;
+    --brown-dark: #2f3f2f;
+    --brown-main: #b58a00;
+    --brown-hover: #8f6d00;
+    --brown-title: #2f4f2f;
+    --gray-bg: #e8f5e3;
+    --card-bg: #fbfff7;
+    --gray-text: #51624d;
+    --border: #c9d8bf;
 }
 
 body {
     font-family: Arial, Helvetica, sans-serif;
-    background: linear-gradient(135deg, var(--gray-bg), #f3f1ee);
+    background: linear-gradient(135deg, #e8f5e3, #fff8d6);
     min-height: 100vh;
-    color: #2f2a26;
+    color: #253025;
 }
 
 /* =========================
@@ -435,10 +435,9 @@ input[type="file"] {
 ========================= */
 
 @media (max-width: 600px) {
-    body {
-        background: #f3f1ee;
-    }
-
+   body {
+    background: #e8f5e3;
+     }
     .pages {
         padding: 10px 8px;
         overflow-x: auto;

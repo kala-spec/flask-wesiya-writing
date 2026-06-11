@@ -14,19 +14,11 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 
-# -----------------------------
-# DATABASE CONNECTION
-# -----------------------------
-
 def get_db_connection():
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
     return connection
 
-
-# -----------------------------
-# CREATE DATABASE TABLES
-# -----------------------------
 
 def create_tables():
     connection = get_db_connection()
@@ -66,10 +58,6 @@ def create_tables():
     connection.close()
 
 
-# -----------------------------
-# USER FUNCTIONS
-# -----------------------------
-
 def find_user_by_email(email):
     connection = get_db_connection()
 
@@ -97,10 +85,6 @@ def create_user(email, password):
     connection.commit()
     connection.close()
 
-
-# -----------------------------
-# TEXT NOTE FUNCTIONS
-# -----------------------------
 
 def save_text_note(user_id, daily_note):
     connection = get_db_connection()
@@ -132,10 +116,6 @@ def get_text_notes_by_user(user_id):
     connection.close()
     return notes
 
-
-# -----------------------------
-# VOICE NOTE FUNCTIONS
-# -----------------------------
 
 def save_voice_note(user_id, filename, file_path):
     connection = get_db_connection()
@@ -169,10 +149,6 @@ def get_voice_notes_by_user(user_id):
     connection.close()
     return voice_notes
 
-
-# -----------------------------
-# PAGE ROUTES
-# -----------------------------
 
 @app.route("/")
 def login():
@@ -210,7 +186,6 @@ def profile():
     )
 
 
-# This route lets the profile page play voice files from uploads/
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     if "user_id" not in session:
@@ -218,10 +193,6 @@ def uploaded_file(filename):
 
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-
-# -----------------------------
-# LOGIN AND SIGNUP ROUTES
-# -----------------------------
 
 @app.route("/login", methods=["POST"])
 def login_user():
@@ -278,10 +249,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-# -----------------------------
-# SUBMIT TEXT NOTE
-# -----------------------------
-
 @app.route("/submit_note", methods=["POST"])
 def submit_note():
     if "user_id" not in session:
@@ -294,10 +261,6 @@ def submit_note():
 
     return redirect(url_for("profile"))
 
-
-# -----------------------------
-# SAVE DIRECT VOICE RECORDING
-# -----------------------------
 
 @app.route("/save_voice_recording", methods=["POST"])
 def save_voice_recording():
@@ -326,10 +289,6 @@ def save_voice_recording():
 
     return redirect(url_for("profile"))
 
-
-# -----------------------------
-# RUN APP
-# -----------------------------
 
 if __name__ == "__main__":
     create_tables()
