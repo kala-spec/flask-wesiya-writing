@@ -9,6 +9,18 @@
 
 <body>
 
+    <nav class="pages">
+        <ul>
+            <li><a href="/">Login</a></li>
+            <li>
+                <div class="translate-box">
+                    <span class="translate-label">Translate:</span>
+                    <div id="google_translate_element"></div>
+                </div>
+            </li>
+        </ul>
+    </nav>
+
     {% if error %}
         <p class="error-message">{{ error }}</p>
     {% endif %}
@@ -21,7 +33,7 @@
 
         <div class="box">
             <h2>Login</h2>
-            <p class="small-text">Welcome back to Wesiya. Login to continue.</p>
+            <p class="small-text">Welcome back to Wesiya. Login to continue your personal writing and voice recording journey.</p>
 
             <form action="/login" method="POST">
                 <label>Email</label>
@@ -36,7 +48,7 @@
 
         <div class="box">
             <h2>Sign Up</h2>
-            <p class="small-text">Create your Wesiya account to save your writing notes and voice records.</p>
+            <p class="small-text">Create your Wesiya account to save your reflections, writing notes, voice records, and personal updates.</p>
 
             <form action="/signup" method="POST">
                 <label>Email</label>
@@ -50,6 +62,18 @@
         </div>
 
     </div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: "en",
+                includedLanguages: "en,am,ar",
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, "google_translate_element");
+        }
+    </script>
+
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>

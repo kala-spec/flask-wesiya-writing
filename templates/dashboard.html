@@ -17,29 +17,45 @@
             <li><a href="#">About</a></li>
             <li><a href="#">Contact</a></li>
             <li><a href="/logout" class="logout-link">Logout</a></li>
+            <li>
+                <div class="translate-box">
+                    <span class="translate-label">Translate:</span>
+                    <div id="google_translate_element"></div>
+                </div>
+            </li>
         </ul>
     </nav>
 
     <section class="dashboard-header">
         <h1>Wesiya Dashboard</h1>
-        <p>Write your text notes or record voice notes and save them to your profile.</p>
+
+        <p>
+            Write your WESIYA, record your voice notes, and update your personal WESIYA
+            whenever something new happens.
+        </p>
     </section>
 
     <main class="message-wrapper">
 
         <form action="/submit_note" method="POST" class="message-card">
-            <h2>Text Note</h2>
-            <p>Write your daily wesiya.</p>
+            <h2>Writing Update</h2>
 
-            <label>Your Note</label>
-            <textarea name="daily_note" rows="6" placeholder="Write your wesiya here..." required></textarea>
+            <p>
+                Write your daily WESIYA !.
+            </p>
 
-            <button type="submit">Save Text Note</button>
+            <label>Your Writing</label>
+            <textarea name="daily_note" rows="6" placeholder="Write your WESIYA here..." required></textarea>
+
+            <button type="submit">Save Writing Update</button>
         </form>
 
         <form class="message-card" id="recordForm">
-            <h2>Voice Recording</h2>
-            <p>Record your wesiya.</p>
+            <h2>Voice Update</h2>
+
+            <p>
+                Record your voice directly from the browser and save it to your My Wesiya page.
+            </p>
 
             <button type="button" id="startRecord">Start Recording</button>
             <br><br>
@@ -50,7 +66,7 @@
             <audio id="audioPlayback" controls style="width: 100%; display: none;"></audio>
             <br><br>
 
-            <button type="button" id="sendRecording" disabled>Save Voice Recording</button>
+            <button type="button" id="sendRecording" disabled>Save Voice Update</button>
 
             <p id="recordStatus"></p>
         </form>
@@ -58,117 +74,129 @@
     </main>
 
     <script>
-    let mediaRecorder;
-    let audioChunks = [];
-    let recordedBlob;
-    let currentStream;
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedBlob;
+        let currentStream;
 
-    const startButton = document.getElementById("startRecord");
-    const stopButton = document.getElementById("stopRecord");
-    const sendButton = document.getElementById("sendRecording");
-    const audioPlayback = document.getElementById("audioPlayback");
-    const recordStatus = document.getElementById("recordStatus");
+        const startButton = document.getElementById("startRecord");
+        const stopButton = document.getElementById("stopRecord");
+        const sendButton = document.getElementById("sendRecording");
+        const audioPlayback = document.getElementById("audioPlayback");
+        const recordStatus = document.getElementById("recordStatus");
 
-    startButton.addEventListener("click", async function () {
-        try {
-            const audioSettings = {
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    sampleRate: 48000,
-                    channelCount: 1
+        startButton.addEventListener("click", async function () {
+            try {
+                const audioSettings = {
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 48000,
+                        channelCount: 1
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(audioSettings);
+
+                let options = {};
+
+                if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+                    options = {
+                        mimeType: "audio/webm;codecs=opus",
+                        audioBitsPerSecond: 128000
+                    };
+                } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+                    options = {
+                        mimeType: "audio/webm",
+                        audioBitsPerSecond: 128000
+                    };
                 }
-            };
 
-            currentStream = await navigator.mediaDevices.getUserMedia(audioSettings);
+                mediaRecorder = new MediaRecorder(currentStream, options);
+                audioChunks = [];
 
-            let options = {};
-
-            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-                options = {
-                    mimeType: "audio/webm;codecs=opus",
-                    audioBitsPerSecond: 128000
+                mediaRecorder.ondataavailable = function (event) {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
                 };
-            } else if (MediaRecorder.isTypeSupported("audio/webm")) {
-                options = {
-                    mimeType: "audio/webm",
-                    audioBitsPerSecond: 128000
+
+                mediaRecorder.onstop = function () {
+                    recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+                    const audioUrl = URL.createObjectURL(recordedBlob);
+
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.style.display = "block";
+
+                    sendButton.disabled = false;
+                    recordStatus.innerText = "Recording ready to save.";
+
+                    if (currentStream) {
+                        currentStream.getTracks().forEach(track => track.stop());
+                    }
                 };
+
+                mediaRecorder.start();
+
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                sendButton.disabled = true;
+
+                recordStatus.innerText = "Recording...";
+            } catch (error) {
+                recordStatus.innerText = "Microphone permission denied or not available.";
+                console.log(error);
             }
-
-            mediaRecorder = new MediaRecorder(currentStream, options);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = function (event) {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            mediaRecorder.onstop = function () {
-                recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
-                const audioUrl = URL.createObjectURL(recordedBlob);
-
-                audioPlayback.src = audioUrl;
-                audioPlayback.style.display = "block";
-
-                sendButton.disabled = false;
-                recordStatus.innerText = "Recording ready to save.";
-
-                if (currentStream) {
-                    currentStream.getTracks().forEach(track => track.stop());
-                }
-            };
-
-            mediaRecorder.start();
-
-            startButton.disabled = true;
-            stopButton.disabled = false;
-            sendButton.disabled = true;
-
-            recordStatus.innerText = "Recording in higher quality...";
-        } catch (error) {
-            recordStatus.innerText = "Microphone permission denied or not available.";
-            console.log(error);
-        }
-    });
-
-    stopButton.addEventListener("click", function () {
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-        }
-
-        startButton.disabled = false;
-        stopButton.disabled = true;
-
-        recordStatus.innerText = "Recording stopped.";
-    });
-
-    sendButton.addEventListener("click", async function () {
-        if (!recordedBlob) {
-            recordStatus.innerText = "No recording found.";
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("voice_recording", recordedBlob, "voice_note.webm");
-
-        recordStatus.innerText = "Saving voice recording...";
-
-        const response = await fetch("/save_voice_recording", {
-            method: "POST",
-            body: formData
         });
 
-        if (response.redirected) {
-            window.location.href = response.url;
-        } else {
-            const result = await response.text();
-            recordStatus.innerText = result;
+        stopButton.addEventListener("click", function () {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            recordStatus.innerText = "Recording stopped.";
+        });
+
+        sendButton.addEventListener("click", async function () {
+            if (!recordedBlob) {
+                recordStatus.innerText = "No recording found.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("voice_recording", recordedBlob, "voice_update.webm");
+
+            recordStatus.innerText = "Saving voice recording...";
+
+            const response = await fetch("/save_voice_recording", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                const result = await response.text();
+                recordStatus.innerText = result;
+            }
+        });
+    </script>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: "en",
+                includedLanguages: "en,am,ar",
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, "google_translate_element");
         }
-    });
-</script>
+    </script>
+
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>
