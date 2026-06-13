@@ -3,23 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Wesiya</title>
+    <title>Welcome | Wesiya</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
-
-    <nav class="pages">
-        <ul>
-            <li><a href="/">Login</a></li>
-            <li>
-                <div class="translate-box">
-                    <span class="translate-label">Translate:</span>
-                    <div id="google_translate_element"></div>
-                </div>
-            </li>
-        </ul>
-    </nav>
 
     {% if error %}
         <p class="error-message">{{ error }}</p>
@@ -29,51 +17,105 @@
         <p class="signup-message">{{ signup_message }}</p>
     {% endif %}
 
-    <div class="container">
+    <div class="container single-auth-container">
 
-        <div class="box">
-            <h2>Login</h2>
-            <p class="small-text">Welcome back to Wesiya. Login to continue your personal writing and voice recording journey.</p>
-
-            <form action="/login" method="POST">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="Enter your email" required>
-
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required>
-
-                <button type="submit">Login</button>
-            </form>
-        </div>
-
-        <div class="box">
-            <h2>Sign Up</h2>
-            <p class="small-text">Create your Wesiya account to save your reflections, writing notes, voice records, and personal updates.</p>
+        <!-- SIGNUP FORM -->
+        <div class="box auth-box" id="signupBox">
+            <h2>Create Your Wesiya Account</h2>
+            <p class="small-text">
+                Start your Wesiya space to save your writing updates, voice records,
+                reflections, and important personal notes.
+            </p>
 
             <form action="/signup" method="POST">
                 <label>Email</label>
-                <input type="email" name="email" value="{{ signup_email or '' }}" placeholder="Create email" required>
+                <input 
+                    type="email" 
+                    name="email" 
+                    value="{{ signup_email or '' }}" 
+                    placeholder="Create email" 
+                    required
+                >
 
                 <label>Password</label>
-                <input type="password" name="password" placeholder="Create password" required>
+                <input 
+                    type="password" 
+                    name="password" 
+                    placeholder="Create password" 
+                    required
+                >
 
                 <button type="submit">Sign Up</button>
             </form>
+
+            <p class="auth-switch-text">
+                I already have an account.
+                <button type="button" class="auth-switch-btn" onclick="showLogin()">
+                    Login here
+                </button>
+            </p>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div class="box auth-box" id="loginBox">
+            <h2>Login to Wesiya</h2>
+            <p class="small-text">
+                Welcome back. Login to continue your writing and voice recording journey.
+            </p>
+
+            <form action="/login" method="POST">
+                <label>Email</label>
+                <input 
+                    type="email" 
+                    name="email" 
+                    value="{{ login_email or '' }}" 
+                    placeholder="Enter your email" 
+                    required
+                >
+
+                <label>Password</label>
+                <input 
+                    type="password" 
+                    name="password" 
+                    placeholder="Enter your password" 
+                    required
+                >
+
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="auth-switch-text">
+                I do not have an account.
+                <button type="button" class="auth-switch-btn" onclick="showSignup()">
+                    Sign up here
+                </button>
+            </p>
         </div>
 
     </div>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: "en",
-                includedLanguages: "en,am,ar",
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-            }, "google_translate_element");
+    <script>
+        const signupBox = document.getElementById("signupBox");
+        const loginBox = document.getElementById("loginBox");
+
+        function showSignup() {
+            signupBox.style.display = "block";
+            loginBox.style.display = "none";
+        }
+
+        function showLogin() {
+            signupBox.style.display = "none";
+            loginBox.style.display = "block";
+        }
+
+        const defaultForm = "{{ default_form or 'signup' }}";
+
+        if (defaultForm === "login") {
+            showLogin();
+        } else {
+            showSignup();
         }
     </script>
-
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>
