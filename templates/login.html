@@ -19,31 +19,74 @@
 
     <div class="container single-auth-container">
 
-        <!-- SIGNUP FORM -->
-        <div class="box auth-box" id="signupBox">
+        <div class="box auth-box large-auth-box" id="signupBox">
             <h2>Create Your Wesiya Account</h2>
             <p class="small-text">
-                Start your Wesiya space to save your writing updates, voice records,
-                reflections, and important personal notes.
+                Start your Wesiya space to save writing updates, voice records,
+                personal information, and trusted family members.
             </p>
 
             <form action="/signup" method="POST">
                 <label>Email</label>
-                <input 
-                    type="email" 
-                    name="email" 
-                    value="{{ signup_email or '' }}" 
-                    placeholder="Create email" 
-                    required
-                >
+                <input type="email" name="email" value="{{ signup_email or '' }}" placeholder="Create email" required>
 
                 <label>Password</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    placeholder="Create password" 
-                    required
-                >
+                <input type="password" name="password" placeholder="Create password" required>
+
+                <h3 class="form-section-title">Personal Information</h3>
+
+                <label>Full Name</label>
+                <input type="text" name="full_name" placeholder="Enter your full name" required>
+
+                <label>Phone Number</label>
+                <input type="tel" name="phone_number" placeholder="Enter your phone number" required>
+
+                <label>Date of Birth</label>
+                <input type="date" name="date_of_birth" required>
+
+                <label>Height</label>
+                <input type="text" name="height" placeholder="Example: 175 cm" required>
+
+                <h3 class="form-section-title">Trusted / Family Members</h3>
+
+                <div class="trusted-member-box">
+                    <h4>Member 1</h4>
+
+                    <label>Name</label>
+                    <input type="text" name="member_name_1" placeholder="Enter member name" required>
+
+                    <label>Phone Number</label>
+                    <input type="tel" name="member_phone_1" placeholder="Enter member phone" required>
+
+                    <label>Relationship</label>
+                    <input type="text" name="relationship_1" placeholder="Example: Mother, Father, Brother, Friend" required>
+                </div>
+
+                <div class="trusted-member-box">
+                    <h4>Member 2</h4>
+
+                    <label>Name</label>
+                    <input type="text" name="member_name_2" placeholder="Enter member name" required>
+
+                    <label>Phone Number</label>
+                    <input type="tel" name="member_phone_2" placeholder="Enter member phone" required>
+
+                    <label>Relationship</label>
+                    <input type="text" name="relationship_2" placeholder="Example: Mother, Father, Brother, Friend" required>
+                </div>
+
+                <div class="trusted-member-box">
+                    <h4>Member 3</h4>
+
+                    <label>Name</label>
+                    <input type="text" name="member_name_3" placeholder="Enter member name" required>
+
+                    <label>Phone Number</label>
+                    <input type="tel" name="member_phone_3" placeholder="Enter member phone" required>
+
+                    <label>Relationship</label>
+                    <input type="text" name="relationship_3" placeholder="Example: Mother, Father, Brother, Friend" required>
+                </div>
 
                 <button type="submit">Sign Up</button>
             </form>
@@ -56,7 +99,6 @@
             </p>
         </div>
 
-        <!-- LOGIN FORM -->
         <div class="box auth-box" id="loginBox">
             <h2>Login to Wesiya</h2>
             <p class="small-text">
@@ -65,21 +107,10 @@
 
             <form action="/login" method="POST">
                 <label>Email</label>
-                <input 
-                    type="email" 
-                    name="email" 
-                    value="{{ login_email or '' }}" 
-                    placeholder="Enter your email" 
-                    required
-                >
+                <input type="email" name="email" value="{{ login_email or '' }}" placeholder="Enter your email" required>
 
                 <label>Password</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    placeholder="Enter your password" 
-                    required
-                >
+                <input type="password" name="password" placeholder="Enter your password" required>
 
                 <button type="submit">Login</button>
             </form>

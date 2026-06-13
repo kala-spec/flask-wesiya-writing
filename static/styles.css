@@ -748,3 +748,78 @@ html[dir="rtl"] textarea {
     background: transparent;
     color: var(--brown-hover);
 }
+/* =========================
+   SIGNUP PROFILE FIELDS
+========================= */
+
+.single-auth-container {
+    grid-template-columns: minmax(280px, 620px);
+}
+
+.auth-box {
+    width: 100%;
+}
+
+.large-auth-box {
+    max-width: 620px;
+}
+
+.auth-switch-text {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--gray-text);
+    font-size: 14px;
+}
+
+.auth-switch-btn {
+    width: auto;
+    background: transparent;
+    color: var(--brown-main);
+    padding: 0;
+    margin-left: 5px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.auth-switch-btn:hover {
+    background: transparent;
+    color: var(--brown-hover);
+}
+
+.form-section-title {
+    margin: 22px 0 14px;
+    color: var(--brown-title);
+    font-size: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.trusted-member-box {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.trusted-member-box h4 {
+    color: var(--brown-title);
+    margin-bottom: 14px;
+}
+
+@media (max-width: 600px) {
+    .single-auth-container {
+        grid-template-columns: 1fr;
+    }
+
+    .large-auth-box {
+        max-width: 100%;
+    }
+
+    .trusted-member-box {
+        padding: 14px;
+    }
+}

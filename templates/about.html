@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Wesiya</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <nav class="pages">
+        <ul>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/profile">My Wesiya</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="/logout" class="logout-link">Logout</a></li>
+        </ul>
+    </nav>
+
+    <section class="dashboard-header">
+        <h1>About My Wesiya</h1>
+        <p>This page stores your personal information and trusted family members.</p>
+    </section>
+
+    <main class="profile-wrapper">
+
+        {% if profile %}
+
+            <div class="profile-card note-card">
+                <h2>Personal Information</h2>
+
+                <div class="profile-row">
+                    <span>Email</span>
+                    <p>{{ email }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Full Name</span>
+                    <p>{{ profile.full_name }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Phone Number</span>
+                    <p>{{ profile.phone_number }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Date of Birth</span>
+                    <p>{{ profile.date_of_birth }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Height</span>
+                    <p>{{ profile.height }}</p>
+                </div>
+            </div>
+
+            <section class="notes-section">
+                <h2>Trusted / Family Members</h2>
+
+                {% for member in trusted_members %}
+                    <div class="profile-card note-card">
+                        <div class="profile-row">
+                            <span>Name</span>
+                            <p>{{ member.member_name }}</p>
+                        </div>
+
+                        <div class="profile-row">
+                            <span>Phone Number</span>
+                            <p>{{ member.member_phone }}</p>
+                        </div>
+
+                        <div class="profile-row">
+                            <span>Relationship</span>
+                            <p>{{ member.relationship }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </section>
+
+        {% else %}
+
+            <div class="profile-card empty-profile">
+                <h2>No Personal Information Found</h2>
+                <p>Your personal information has not been added yet.</p>
+            </div>
+
+        {% endif %}
+
+    </main>
+
+</body>
+</html>

@@ -1,14 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, jsonify
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from flask_cors import CORS
 import sqlite3
 import os
 
+
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
 app.secret_key = "my_secret_key_for_learning"
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = False
+
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175"
+    ]
+)
 
 DATABASE = "wesiya.db"
 UPLOAD_FOLDER = "uploads"
@@ -16,6 +31,10 @@ UPLOAD_FOLDER = "uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+
+# =========================
+# DATABASE CONNECTION
+# =========================
 
 def get_db_connection():
     connection = sqlite3.connect(DATABASE)
@@ -57,9 +76,38 @@ def create_tables():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER UNIQUE NOT NULL,
+            full_name TEXT NOT NULL,
+            phone_number TEXT NOT NULL,
+            date_of_birth TEXT NOT NULL,
+            height TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS trusted_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            member_name TEXT NOT NULL,
+            member_phone TEXT NOT NULL,
+            relationship TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
     connection.commit()
     connection.close()
 
+
+# =========================
+# USER FUNCTIONS
+# =========================
 
 def find_user_by_email(email):
     connection = get_db_connection()
@@ -88,6 +136,10 @@ def create_user(email, password):
     connection.commit()
     connection.close()
 
+
+# =========================
+# NOTE FUNCTIONS
+# =========================
 
 def save_text_note(user_id, daily_note):
     connection = get_db_connection()
@@ -119,6 +171,10 @@ def get_text_notes_by_user(user_id):
     connection.close()
     return notes
 
+
+# =========================
+# VOICE FUNCTIONS
+# =========================
 
 def save_voice_note(user_id, filename, file_path):
     connection = get_db_connection()
@@ -153,6 +209,102 @@ def get_voice_notes_by_user(user_id):
     return voice_notes
 
 
+# =========================
+# PERSONAL PROFILE FUNCTIONS
+# =========================
+
+def save_user_profile(user_id, full_name, phone_number, date_of_birth, height):
+    connection = get_db_connection()
+
+    existing_profile = connection.execute(
+        "SELECT * FROM user_profiles WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+
+    if existing_profile:
+        connection.execute("""
+            UPDATE user_profiles
+            SET full_name = ?, phone_number = ?, date_of_birth = ?, height = ?
+            WHERE user_id = ?
+        """, (
+            full_name,
+            phone_number,
+            date_of_birth,
+            height,
+            user_id
+        ))
+    else:
+        connection.execute("""
+            INSERT INTO user_profiles
+            (user_id, full_name, phone_number, date_of_birth, height, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            full_name,
+            phone_number,
+            date_of_birth,
+            height,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+
+    connection.commit()
+    connection.close()
+
+
+def save_trusted_members(user_id, trusted_members):
+    connection = get_db_connection()
+
+    connection.execute(
+        "DELETE FROM trusted_members WHERE user_id = ?",
+        (user_id,)
+    )
+
+    for member in trusted_members:
+        connection.execute("""
+            INSERT INTO trusted_members
+            (user_id, member_name, member_phone, relationship, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            member["member_name"],
+            member["member_phone"],
+            member["relationship"],
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+
+    connection.commit()
+    connection.close()
+
+
+def get_user_profile(user_id):
+    connection = get_db_connection()
+
+    profile = connection.execute("""
+        SELECT * FROM user_profiles
+        WHERE user_id = ?
+    """, (user_id,)).fetchone()
+
+    connection.close()
+    return profile
+
+
+def get_trusted_members(user_id):
+    connection = get_db_connection()
+
+    members = connection.execute("""
+        SELECT * FROM trusted_members
+        WHERE user_id = ?
+        ORDER BY id ASC
+    """, (user_id,)).fetchall()
+
+    connection.close()
+    return members
+
+
+# =========================
+# OLD FLASK HTML ROUTES
+# =========================
+
 @app.route("/")
 def login():
     return render_template("login.html", default_form="signup")
@@ -186,6 +338,22 @@ def profile():
         "profile.html",
         notes=notes,
         voice_notes=voice_notes
+    )
+
+
+@app.route("/about")
+def about():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    profile = get_user_profile(session["user_id"])
+    trusted_members = get_trusted_members(session["user_id"])
+
+    return render_template(
+        "about.html",
+        email=session.get("email"),
+        profile=profile,
+        trusted_members=trusted_members
     )
 
 
@@ -231,6 +399,56 @@ def signup_user():
     email = request.form.get("email")
     password = request.form.get("password")
 
+    full_name = request.form.get("full_name")
+    phone_number = request.form.get("phone_number")
+    date_of_birth = request.form.get("date_of_birth")
+    height = request.form.get("height")
+
+    trusted_members = [
+        {
+            "member_name": request.form.get("member_name_1"),
+            "member_phone": request.form.get("member_phone_1"),
+            "relationship": request.form.get("relationship_1")
+        },
+        {
+            "member_name": request.form.get("member_name_2"),
+            "member_phone": request.form.get("member_phone_2"),
+            "relationship": request.form.get("relationship_2")
+        },
+        {
+            "member_name": request.form.get("member_name_3"),
+            "member_phone": request.form.get("member_phone_3"),
+            "relationship": request.form.get("relationship_3")
+        }
+    ]
+
+    if not email or not password:
+        return render_template(
+            "login.html",
+            error="Email and password are required.",
+            default_form="signup"
+        )
+
+    if not full_name or not phone_number or not date_of_birth or not height:
+        return render_template(
+            "login.html",
+            error="Please complete your personal information.",
+            default_form="signup"
+        )
+
+    valid_members = []
+
+    for member in trusted_members:
+        if member["member_name"] and member["member_phone"] and member["relationship"]:
+            valid_members.append(member)
+
+    if len(valid_members) < 3:
+        return render_template(
+            "login.html",
+            error="Please add at least 3 trusted or family members.",
+            default_form="signup"
+        )
+
     existing_user = find_user_by_email(email)
 
     if existing_user is not None:
@@ -242,8 +460,17 @@ def signup_user():
         )
 
     create_user(email, password)
-
     new_user = find_user_by_email(email)
+
+    save_user_profile(
+        new_user["id"],
+        full_name,
+        phone_number,
+        date_of_birth,
+        height
+    )
+
+    save_trusted_members(new_user["id"], valid_members)
 
     session["user_id"] = new_user["id"]
     session["email"] = new_user["email"]
@@ -286,16 +513,17 @@ def save_voice_recording():
     )
 
     file_path = os.path.join(UPLOAD_FOLDER, filename)
-
     voice_file.save(file_path)
 
-    save_voice_note(
-        session["user_id"],
-        filename,
-        file_path
-    )
+    save_voice_note(session["user_id"], filename, file_path)
 
     return redirect(url_for("profile"))
+
+
+# =========================
+# REACT API ROUTES
+# =========================
+
 @app.route("/api/check-session", methods=["GET"])
 def api_check_session():
     if "user_id" in session:
@@ -348,16 +576,65 @@ def api_signup():
     email = data.get("email")
     password = data.get("password")
 
+    full_name = data.get("full_name")
+    phone_number = data.get("phone_number")
+    date_of_birth = data.get("date_of_birth")
+    height = data.get("height")
+
+    trusted_members = data.get("trusted_members", [])
+
+    if not email or not password:
+        return jsonify({
+            "success": False,
+            "message": "Email and password are required."
+        }), 400
+
+    if not full_name or not phone_number or not date_of_birth or not height:
+        return jsonify({
+            "success": False,
+            "message": "Please complete your personal information."
+        }), 400
+
+    valid_members = []
+
+    for member in trusted_members:
+        member_name = member.get("member_name")
+        member_phone = member.get("member_phone")
+        relationship = member.get("relationship")
+
+        if member_name and member_phone and relationship:
+            valid_members.append({
+                "member_name": member_name,
+                "member_phone": member_phone,
+                "relationship": relationship
+            })
+
+    if len(valid_members) < 3:
+        return jsonify({
+            "success": False,
+            "message": "Please add at least 3 trusted or family members."
+        }), 400
+
     existing_user = find_user_by_email(email)
 
     if existing_user is not None:
         return jsonify({
             "success": False,
-            "message": "This email already exists. Please login instead."
+            "message": "This account already exists. Please login instead."
         }), 409
 
     create_user(email, password)
     new_user = find_user_by_email(email)
+
+    save_user_profile(
+        new_user["id"],
+        full_name,
+        phone_number,
+        date_of_birth,
+        height
+    )
+
+    save_trusted_members(new_user["id"], valid_members)
 
     session["user_id"] = new_user["id"]
     session["email"] = new_user["email"]
@@ -423,6 +700,25 @@ def api_profile():
     })
 
 
+@app.route("/api/about", methods=["GET"])
+def api_about():
+    if "user_id" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Not logged in"
+        }), 401
+
+    profile = get_user_profile(session["user_id"])
+    trusted_members = get_trusted_members(session["user_id"])
+
+    return jsonify({
+        "success": True,
+        "email": session.get("email"),
+        "profile": dict(profile) if profile else None,
+        "trusted_members": [dict(member) for member in trusted_members]
+    })
+
+
 @app.route("/api/save-voice", methods=["POST"])
 def api_save_voice():
     if "user_id" not in session:
@@ -455,6 +751,13 @@ def api_save_voice():
         "filename": filename
     })
 
+
+# =========================
+# START APP
+# =========================
+
+create_tables()
+
+
 if __name__ == "__main__":
-    create_tables()
     app.run(debug=True)
