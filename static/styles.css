@@ -823,3 +823,28 @@ html[dir="rtl"] textarea {
         padding: 14px;
     }
 }
+.trusted-access-link {
+    margin-top: 25px;
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+.trusted-access-link p {
+    color: var(--gray-text);
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.danger-access-btn {
+    display: inline-block;
+    background: #7a1f1f;
+    color: white;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.danger-access-btn:hover {
+    background: #5c1515;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trusted Access | Wesiya</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <div class="container single-auth-container">
+
+        <div class="box auth-box large-auth-box">
+            <h2>Trusted Member Access</h2>
+            <p class="small-text">
+                Use this page only if you are one of the trusted or family members
+                registered by the account owner.
+            </p>
+
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+
+            <form action="/trusted-login" method="POST">
+
+                <h3 class="form-section-title">Account Owner Information</h3>
+
+                <label>Account Owner Full Name</label>
+                <input type="text" name="owner_full_name" placeholder="Enter account owner's full name" required>
+
+                <label>Account Owner Email</label>
+                <input type="email" name="owner_email" placeholder="Enter account owner's email" required>
+
+                <h3 class="form-section-title">Your Information</h3>
+
+                <label>Your Name</label>
+                <input type="text" name="member_name" placeholder="Enter your name" required>
+
+                <label>Your Phone Number</label>
+                <input type="tel" name="member_phone" placeholder="Enter your phone number" required>
+
+                <label>Your Relationship</label>
+                <input type="text" name="relationship" placeholder="Example: Mother, Father, Brother, Friend" required>
+
+                <button type="submit">Access Wesiya</button>
+            </form>
+
+            <p class="auth-switch-text">
+                <a href="/">Back to login</a>
+            </p>
+        </div>
+
+    </div>
+
+</body>
+</html>

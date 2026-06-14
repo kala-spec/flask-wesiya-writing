@@ -519,6 +519,95 @@ def save_voice_recording():
 
     return redirect(url_for("profile"))
 
+@app.route("/trusted-access")
+def trusted_access():
+    return render_template("trusted_access.html")
+
+
+@app.route("/trusted-login", methods=["POST"])
+def trusted_login():
+    owner_full_name = request.form.get("owner_full_name")
+    owner_email = request.form.get("owner_email")
+
+    member_name = request.form.get("member_name")
+    member_phone = request.form.get("member_phone")
+    relationship = request.form.get("relationship")
+
+    connection = get_db_connection()
+
+    owner = connection.execute("""
+        SELECT users.id, users.email, user_profiles.full_name
+        FROM users
+        JOIN user_profiles ON users.id = user_profiles.user_id
+        WHERE users.email = ?
+        AND LOWER(user_profiles.full_name) = LOWER(?)
+    """, (owner_email, owner_full_name)).fetchone()
+
+    if owner is None:
+        connection.close()
+        return render_template(
+            "trusted_access.html",
+            error="Account owner information was not found."
+        )
+
+    trusted_member = connection.execute("""
+        SELECT * FROM trusted_members
+        WHERE user_id = ?
+        AND LOWER(member_name) = LOWER(?)
+        AND member_phone = ?
+        AND LOWER(relationship) = LOWER(?)
+    """, (
+        owner["id"],
+        member_name,
+        member_phone,
+        relationship
+    )).fetchone()
+
+    connection.close()
+
+    if trusted_member is None:
+        return render_template(
+            "trusted_access.html",
+            error="Trusted member information does not match our records."
+        )
+
+    session["trusted_access_user_id"] = owner["id"]
+    session["trusted_access_email"] = owner["email"]
+    session["trusted_access_name"] = owner["full_name"]
+
+    return redirect(url_for("trusted_view"))
+
+
+@app.route("/trusted-view")
+def trusted_view():
+    if "trusted_access_user_id" not in session:
+        return redirect(url_for("trusted_access"))
+
+    owner_user_id = session["trusted_access_user_id"]
+
+    profile = get_user_profile(owner_user_id)
+    trusted_members = get_trusted_members(owner_user_id)
+    notes = get_text_notes_by_user(owner_user_id)
+    voice_notes = get_voice_notes_by_user(owner_user_id)
+
+    return render_template(
+        "trusted_view.html",
+        email=session.get("trusted_access_email"),
+        owner_name=session.get("trusted_access_name"),
+        profile=profile,
+        trusted_members=trusted_members,
+        notes=notes,
+        voice_notes=voice_notes
+    )
+
+
+@app.route("/trusted-logout")
+def trusted_logout():
+    session.pop("trusted_access_user_id", None)
+    session.pop("trusted_access_email", None)
+    session.pop("trusted_access_name", None)
+
+    return redirect(url_for("login"))
 
 # =========================
 # REACT API ROUTES
