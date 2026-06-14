@@ -960,3 +960,216 @@ body {
         width: fit-content;
     }
 }
+/* =========================
+   SIMPLE MOBILE PAGE UPDATE
+========================= */
+
+.language-bar {
+    width: fit-content;
+    margin: 14px auto;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 8px;
+    z-index: 1000;
+}
+
+.language-bar span {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--brown-title);
+}
+
+.language-bar select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-weight: bold;
+    background: white;
+}
+
+.pages {
+    padding: 10px;
+}
+
+.pages ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.pages li {
+    list-style: none;
+}
+
+.pages a,
+.pages button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dashboard-header {
+    padding: 24px 16px;
+    text-align: center;
+}
+
+.dashboard-header h1 {
+    font-size: clamp(26px, 7vw, 44px);
+    line-height: 1.15;
+}
+
+.dashboard-header p {
+    max-width: 650px;
+    margin: 10px auto 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.home-container,
+.profile-wrapper,
+.container {
+    width: min(100% - 24px, 900px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.box,
+.profile-card,
+.note-card {
+    border-radius: 16px;
+    padding: 18px;
+}
+
+button,
+input,
+textarea,
+select,
+a {
+    touch-action: manipulation;
+}
+
+button {
+    min-height: 42px;
+}
+
+.rtl-page {
+    text-align: right;
+}
+
+.rtl-page input,
+.rtl-page textarea {
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .pages {
+        position: static;
+    }
+
+    .pages ul {
+        gap: 6px;
+    }
+
+    .pages a,
+    .pages button {
+        font-size: 13px;
+        padding: 7px 10px;
+        min-height: 36px;
+    }
+
+    .dashboard-header {
+        padding: 18px 12px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 28px;
+    }
+
+    .dashboard-header p {
+        font-size: 14px;
+    }
+
+    .box,
+    .profile-card,
+    .note-card {
+        padding: 15px;
+    }
+
+    .language-bar {
+        position: static;
+        margin-top: 10px;
+        max-width: calc(100% - 20px);
+    }
+}
+/* =========================
+   AI TRANSLATION BAR
+========================= */
+
+.language-bar {
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 12px auto;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 8px;
+    z-index: 1000;
+}
+
+.language-bar span {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--brown-title);
+}
+
+.language-bar select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-weight: bold;
+    background: white;
+}
+
+.language-bar small {
+    color: var(--brown-title);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.rtl-page {
+    text-align: right;
+}
+
+.rtl-page input,
+.rtl-page textarea {
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .language-bar {
+        position: static;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 10px;
+    }
+}

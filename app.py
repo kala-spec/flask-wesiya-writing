@@ -3,6 +3,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import sqlite3
+import requests
 import os
 
 
@@ -41,7 +42,87 @@ def get_db_connection():
     connection.row_factory = sqlite3.Row
     return connection
 
+@app.route("/api/translate-page", methods=["POST"])
+def translate_page():
+    data = request.get_json()
 
+    target_language = data.get("target_language")
+    texts = data.get("texts", [])
+
+    if not target_language or not texts:
+        return jsonify({
+            "success": False,
+            "message": "Target language and texts are required."
+        }), 400
+
+    gemini_api_key = os.environ.get("GEMINI_API_KEY")
+
+    if not gemini_api_key:
+        return jsonify({
+            "success": False,
+            "message": "Gemini API key is not configured."
+        }), 500
+
+    prompt = f"""
+Translate each item in this JSON array into {target_language}.
+Keep the meaning simple and natural.
+Do not add explanations.
+Return only a JSON array of translated strings in the same order.
+
+TEXTS:
+{texts}
+"""
+
+    try:
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+
+        response = requests.post(
+            url,
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": gemini_api_key
+            },
+            json={
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
+            },
+            timeout=30
+        )
+
+        result = response.json()
+
+        translated_text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+        translated_text = translated_text.strip()
+
+        if translated_text.startswith("```"):
+            translated_text = translated_text.replace("```json", "")
+            translated_text = translated_text.replace("```", "")
+            translated_text = translated_text.strip()
+
+        import json
+        translated_list = json.loads(translated_text)
+
+        return jsonify({
+            "success": True,
+            "translations": translated_list
+        })
+
+    except Exception as error:
+        print("Translation error:", error)
+
+        return jsonify({
+            "success": False,
+            "message": "Translation failed."
+        }), 500
+    
 def create_tables():
     connection = get_db_connection()
     cursor = connection.cursor()
