@@ -307,7 +307,7 @@ def get_trusted_members(user_id):
 
 @app.route("/")
 def login():
-    return render_template("login.html", default_form="signup")
+    return render_template("login.html", default_form="login")
 
 
 @app.route("/home")

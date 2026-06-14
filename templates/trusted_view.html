@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trusted View | Wesiya</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <nav class="pages">
+        <ul>
+            <li><a href="/trusted-view">Trusted View</a></li>
+            <li><a href="/trusted-logout" class="logout-link">Logout</a></li>
+        </ul>
+    </nav>
+
+    <section class="dashboard-header">
+        <h1>Trusted Access for {{ owner_name }}</h1>
+        <p>This is a read-only view for registered trusted or family members.</p>
+    </section>
+
+    <main class="profile-wrapper">
+
+        {% if profile %}
+            <div class="profile-card note-card">
+                <h2>Account Owner Information</h2>
+
+                <div class="profile-row">
+                    <span>Email</span>
+                    <p>{{ email }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Full Name</span>
+                    <p>{{ profile.full_name }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Phone Number</span>
+                    <p>{{ profile.phone_number }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Date of Birth</span>
+                    <p>{{ profile.date_of_birth }}</p>
+                </div>
+
+                <div class="profile-row">
+                    <span>Height</span>
+                    <p>{{ profile.height }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <section class="notes-section">
+            <h2>Writing Updates</h2>
+
+            {% if notes %}
+                {% for note in notes %}
+                    <div class="profile-card note-card">
+                        <p>{{ note.daily_note }}</p>
+                        <small>{{ note.created_at }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="profile-card empty-profile">
+                    <p>No writing updates found.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="notes-section">
+            <h2>Voice Updates</h2>
+
+            {% if voice_notes %}
+                {% for voice in voice_notes %}
+                    <div class="profile-card note-card">
+                        <p>{{ voice.filename }}</p>
+                        <audio controls>
+                            <source src="/uploads/{{ voice.filename }}" type="audio/webm">
+                        </audio>
+                        <small>{{ voice.created_at }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="profile-card empty-profile">
+                    <p>No voice updates found.</p>
+                </div>
+            {% endif %}
+        </section>
+
+    </main>
+
+</body>
+</html>
