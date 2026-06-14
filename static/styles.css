@@ -848,3 +848,115 @@ html[dir="rtl"] textarea {
 .danger-access-btn:hover {
     background: #5c1515;
 }
+/* =========================
+   AUTH TRANSLATION MODE
+========================= */
+
+.auth-translate-box {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.auth-translate-box span {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--brown-title);
+}
+
+.auth-translate-box select {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 6px;
+}
+
+.goog-te-gadget {
+    font-size: 0;
+}
+
+.goog-te-gadget span {
+    display: none;
+}
+
+.goog-te-gadget select {
+    font-size: 13px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    color: #333;
+}
+
+body > .skiptranslate {
+    display: none;
+}
+
+body {
+    top: 0 !important;
+}
+
+@media (max-width: 600px) {
+    .auth-translate-box {
+        position: static;
+        margin: 15px auto;
+        width: fit-content;
+    }
+}
+/* =========================
+   MANUAL AUTH LANGUAGE MODE
+========================= */
+
+.auth-language-box {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.auth-language-box span {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--brown-title);
+}
+
+.auth-language-box select {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 6px;
+    background: white;
+    color: #333;
+    font-weight: bold;
+}
+
+.rtl-page {
+    text-align: right;
+}
+
+.rtl-page input {
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .auth-language-box {
+        position: static;
+        margin: 15px auto;
+        width: fit-content;
+    }
+}
