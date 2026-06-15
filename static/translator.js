@@ -2,7 +2,7 @@
 // Wesiya AI Translation
 // Uses Flask backend + Gemini API.
 // Caches translations in localStorage.
-// Does NOT translate buttons, links, forms, or clickable areas.
+// Translates text, labels, links, and buttons safely.
 // ======================================================
 
 const originalTextMap = new Map();
@@ -17,18 +17,21 @@ function getCacheKey(targetLanguage) {
 
 function getTranslatableElements() {
     return Array.from(
-        document.querySelectorAll("h1, h2, h3, h4, p, label, span, small")
+        document.querySelectorAll("h1, h2, h3, h4, p, label, span, small, button, a")
     ).filter((element) => {
         const text = element.innerText.trim();
 
         if (!text) return false;
         if (text.length > 350) return false;
 
-        // Do not translate language bar
+        // Do not translate the language bar itself
         if (element.closest(".no-translate")) return false;
         if (element.classList.contains("no-translate")) return false;
 
-        // Do not translate elements that contain clickable controls
+        // Allow clickable elements themselves
+        if (element.matches("a, button")) return true;
+
+        // But do not translate parent elements that contain clickable controls
         if (element.querySelector("a, button, input, textarea, select")) return false;
 
         return true;
