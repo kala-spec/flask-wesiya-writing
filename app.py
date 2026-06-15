@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlite3
 import requests
 import os
-
+import json
 
 app = Flask(__name__)
 app.secret_key = "my_secret_key_for_learning"
@@ -63,65 +63,114 @@ def translate_page():
             "message": "Gemini API key is not configured."
         }), 500
 
-    prompt = f"""
-Translate each item in this JSON array into {target_language}.
-Keep the meaning simple and natural.
-Do not add explanations.
-Return only a JSON array of translated strings in the same order.
+    texts = [str(text).strip() for text in texts if str(text).strip()]
+    texts = texts[:60]
 
-TEXTS:
-{texts}
+    prompt = f"""
+You are a translation engine.
+
+Translate this JSON array into {target_language}.
+Return ONLY valid JSON.
+Return the result in this exact format:
+
+{{
+  "translations": ["translated text 1", "translated text 2"]
+}}
+
+Rules:
+- Keep the same order.
+- Keep the same number of items.
+- Do not add explanations.
+- Do not use markdown.
+- Do not wrap response in code blocks.
+
+JSON array:
+{json.dumps(texts, ensure_ascii=False)}
 """
 
-    try:
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    models = [
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash",
+    ]
 
-        response = requests.post(
-            url,
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": gemini_api_key
-            },
-            json={
-                "contents": [
-                    {
-                        "parts": [
-                            {
-                                "text": prompt
-                            }
-                        ]
-                    }
-                ]
-            },
-            timeout=30
-        )
+    last_error_message = "Translation service is temporarily unavailable."
 
-        result = response.json()
+    for model in models:
+        try:
+            response = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": gemini_api_key,
+                },
+                json={
+                    "contents": [
+                        {
+                            "parts": [
+                                {
+                                    "text": prompt
+                                }
+                            ]
+                        }
+                    ]
+                },
+                timeout=45,
+            )
 
-        translated_text = result["candidates"][0]["content"]["parts"][0]["text"]
+            if response.status_code != 200:
+                print(f"Gemini model failed: {model}")
+                print("Gemini API status:", response.status_code)
+                print("Gemini API response:", response.text)
 
-        translated_text = translated_text.strip()
+                if response.status_code == 503:
+                    last_error_message = "Gemini is busy right now. Please try again in a minute."
+                    continue
 
-        if translated_text.startswith("```"):
+                last_error_message = "Translation service returned an error."
+                continue
+
+            result = response.json()
+
+            translated_text = (
+                result
+                .get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "")
+                .strip()
+            )
+
+            if not translated_text:
+                print(f"Empty Gemini response from model: {model}")
+                last_error_message = "Translation response was empty."
+                continue
+
             translated_text = translated_text.replace("```json", "")
             translated_text = translated_text.replace("```", "")
             translated_text = translated_text.strip()
 
-        import json
-        translated_list = json.loads(translated_text)
+            parsed = json.loads(translated_text)
+            translated_list = parsed.get("translations", [])
 
-        return jsonify({
-            "success": True,
-            "translations": translated_list
-        })
+            if not isinstance(translated_list, list):
+                last_error_message = "Translation response was not valid."
+                continue
 
-    except Exception as error:
-        print("Translation error:", error)
+            return jsonify({
+                "success": True,
+                "translations": translated_list,
+                "model_used": model
+            })
 
-        return jsonify({
-            "success": False,
-            "message": "Translation failed."
-        }), 500
+        except Exception as error:
+            print(f"Translation error using {model}:", error)
+            last_error_message = "Translation failed. Please try again."
+            continue
+
+    return jsonify({
+        "success": False,
+        "message": last_error_message
+    }), 503
     
 def create_tables():
     connection = get_db_connection()

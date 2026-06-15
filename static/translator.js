@@ -1,3 +1,10 @@
+// ======================================================
+// Wesiya AI Translation
+// Uses Flask backend + Gemini API.
+// Caches translations in localStorage.
+// Does NOT translate buttons, links, forms, or clickable areas.
+// ======================================================
+
 const originalTextMap = new Map();
 
 function getPageName() {
@@ -10,25 +17,26 @@ function getCacheKey(targetLanguage) {
 
 function getTranslatableElements() {
     return Array.from(
-        document.querySelectorAll(
-            "h1, h2, h3, h4, p, label, button, a, span, small"
-        )
+        document.querySelectorAll("h1, h2, h3, h4, p, label, span, small")
     ).filter((element) => {
         const text = element.innerText.trim();
 
         if (!text) return false;
+        if (text.length > 350) return false;
+
+        // Do not translate language bar
         if (element.closest(".no-translate")) return false;
         if (element.classList.contains("no-translate")) return false;
-        if (text.length > 500) return false;
+
+        // Do not translate elements that contain clickable controls
+        if (element.querySelector("a, button, input, textarea, select")) return false;
 
         return true;
     });
 }
 
 function saveOriginalTexts() {
-    const elements = getTranslatableElements();
-
-    elements.forEach((element) => {
+    getTranslatableElements().forEach((element) => {
         if (!originalTextMap.has(element)) {
             originalTextMap.set(element, element.innerText.trim());
         }
@@ -36,9 +44,7 @@ function saveOriginalTexts() {
 }
 
 function restoreEnglish() {
-    const elements = getTranslatableElements();
-
-    elements.forEach((element) => {
+    getTranslatableElements().forEach((element) => {
         if (originalTextMap.has(element)) {
             element.innerText = originalTextMap.get(element);
         }
@@ -52,7 +58,7 @@ function applyTranslations(translations, targetLanguage) {
     const elements = getTranslatableElements();
 
     translations.forEach((translatedText, index) => {
-        if (elements[index]) {
+        if (elements[index] && translatedText) {
             elements[index].innerText = translatedText;
         }
     });
@@ -68,22 +74,16 @@ function applyTranslations(translations, targetLanguage) {
 
 function setTranslationLoading(isLoading) {
     const select = document.getElementById("wesiyaLanguageSelect");
-    const label = document.getElementById("translationStatus");
+    const status = document.getElementById("translationStatus");
 
-    if (!select || !label) return;
+    if (!select || !status) return;
 
-    if (isLoading) {
-        select.disabled = true;
-        label.innerText = "Translating...";
-    } else {
-        select.disabled = false;
-        label.innerText = "";
-    }
+    select.disabled = isLoading;
+    status.innerText = isLoading ? "Translating..." : "";
 }
 
 async function translatePage(targetLanguage) {
     saveOriginalTexts();
-
     localStorage.setItem("wesiya_selected_language", targetLanguage);
 
     if (targetLanguage === "English") {
@@ -95,9 +95,12 @@ async function translatePage(targetLanguage) {
     const cachedTranslations = localStorage.getItem(cacheKey);
 
     if (cachedTranslations) {
-        const translations = JSON.parse(cachedTranslations);
-        applyTranslations(translations, targetLanguage);
-        return;
+        try {
+            applyTranslations(JSON.parse(cachedTranslations), targetLanguage);
+            return;
+        } catch (error) {
+            localStorage.removeItem(cacheKey);
+        }
     }
 
     const elements = getTranslatableElements();
@@ -106,24 +109,29 @@ async function translatePage(targetLanguage) {
         return originalTextMap.get(element) || element.innerText.trim();
     });
 
+    if (texts.length === 0) {
+        return;
+    }
+
     try {
         setTranslationLoading(true);
 
         const response = await fetch("/api/translate-page", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 target_language: targetLanguage,
-                texts: texts
-            })
+                texts: texts,
+            }),
         });
 
         const data = await response.json();
 
         if (!data.success) {
-            alert(data.message || "Translation failed.");
+            console.log("Translation failed:", data.message);
+            alert(data.message || "Translation failed. Please try again.");
             return;
         }
 

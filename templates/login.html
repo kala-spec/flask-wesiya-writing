@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" id="pageHtml">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +8,6 @@
 </head>
 
 <body>
-
-    <div class="auth-language-box">
-        <span data-i18n="language">Language:</span>
-        <select id="languageSelect" onchange="changeLanguage(this.value)">
-            <option value="en">English</option>
-            <option value="am">አማርኛ</option>
-            <option value="ar">العربية</option>
-        </select>
-    </div>
 
     {% if error %}
         <p class="error-message">{{ error }}</p>
@@ -28,113 +19,212 @@
 
     <div class="container single-auth-container">
 
+        <!-- Signup Form -->
         <div class="box auth-box large-auth-box" id="signupBox">
-            <h2 data-i18n="signupTitle">Create Your Wesiya Account</h2>
-            <p class="small-text" data-i18n="signupText">
+            <h2>Create Your Wesiya Account</h2>
+
+            <p class="small-text">
                 Start your Wesiya space to save writing updates, voice records,
                 personal information, and trusted family members.
             </p>
 
             <form action="/signup" method="POST">
-                <label data-i18n="email">Email</label>
-                <input type="email" name="email" value="{{ signup_email or '' }}" data-placeholder="createEmail" placeholder="Create email" required>
+                <label>Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ signup_email or '' }}"
+                    placeholder="Create email"
+                    required
+                >
 
-                <label data-i18n="password">Password</label>
-                <input type="password" name="password" data-placeholder="createPassword" placeholder="Create password" required>
+                <label>Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Create password"
+                    required
+                >
 
-                <h3 class="form-section-title" data-i18n="personalInfo">Personal Information</h3>
+                <h3 class="form-section-title">Personal Information</h3>
 
-                <label data-i18n="fullName">Full Name</label>
-                <input type="text" name="full_name" data-placeholder="fullNamePlaceholder" placeholder="Enter your full name" required>
+                <label>Full Name</label>
+                <input
+                    type="text"
+                    name="full_name"
+                    placeholder="Enter your full name"
+                    required
+                >
 
-                <label data-i18n="phoneNumber">Phone Number</label>
-                <input type="tel" name="phone_number" data-placeholder="phonePlaceholder" placeholder="Enter your phone number" required>
+                <label>Phone Number</label>
+                <input
+                    type="tel"
+                    name="phone_number"
+                    placeholder="Enter your phone number"
+                    required
+                >
 
-                <label data-i18n="dateOfBirth">Date of Birth</label>
-                <input type="date" name="date_of_birth" required>
+                <label>Date of Birth</label>
+                <input
+                    type="date"
+                    name="date_of_birth"
+                    required
+                >
 
-                <label data-i18n="height">Height</label>
-                <input type="text" name="height" data-placeholder="heightPlaceholder" placeholder="Example: 175 cm" required>
+                <label>Height</label>
+                <input
+                    type="text"
+                    name="height"
+                    placeholder="Example: 175 cm"
+                    required
+                >
 
-                <h3 class="form-section-title" data-i18n="trustedMembers">Trusted / Family Members</h3>
+                <h3 class="form-section-title">Trusted / Family Members</h3>
 
                 <div class="trusted-member-box">
-                    <h4><span data-i18n="member">Member</span> 1</h4>
+                    <h4>Member 1</h4>
 
-                    <label data-i18n="memberName">Name</label>
-                    <input type="text" name="member_name_1" data-placeholder="memberNamePlaceholder" placeholder="Enter member name" required>
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        name="member_name_1"
+                        placeholder="Enter member name"
+                        required
+                    >
 
-                    <label data-i18n="memberPhone">Phone Number</label>
-                    <input type="tel" name="member_phone_1" data-placeholder="memberPhonePlaceholder" placeholder="Enter member phone" required>
+                    <label>Phone Number</label>
+                    <input
+                        type="tel"
+                        name="member_phone_1"
+                        placeholder="Enter member phone"
+                        required
+                    >
 
-                    <label data-i18n="relationship">Relationship</label>
-                    <input type="text" name="relationship_1" data-placeholder="relationshipPlaceholder" placeholder="Example: Mother, Father, Brother, Friend" required>
+                    <label>Relationship</label>
+                    <input
+                        type="text"
+                        name="relationship_1"
+                        placeholder="Example: Mother, Father, Brother, Friend"
+                        required
+                    >
                 </div>
 
                 <div class="trusted-member-box">
-                    <h4><span data-i18n="member">Member</span> 2</h4>
+                    <h4>Member 2</h4>
 
-                    <label data-i18n="memberName">Name</label>
-                    <input type="text" name="member_name_2" data-placeholder="memberNamePlaceholder" placeholder="Enter member name" required>
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        name="member_name_2"
+                        placeholder="Enter member name"
+                        required
+                    >
 
-                    <label data-i18n="memberPhone">Phone Number</label>
-                    <input type="tel" name="member_phone_2" data-placeholder="memberPhonePlaceholder" placeholder="Enter member phone" required>
+                    <label>Phone Number</label>
+                    <input
+                        type="tel"
+                        name="member_phone_2"
+                        placeholder="Enter member phone"
+                        required
+                    >
 
-                    <label data-i18n="relationship">Relationship</label>
-                    <input type="text" name="relationship_2" data-placeholder="relationshipPlaceholder" placeholder="Example: Mother, Father, Brother, Friend" required>
+                    <label>Relationship</label>
+                    <input
+                        type="text"
+                        name="relationship_2"
+                        placeholder="Example: Mother, Father, Brother, Friend"
+                        required
+                    >
                 </div>
 
                 <div class="trusted-member-box">
-                    <h4><span data-i18n="member">Member</span> 3</h4>
+                    <h4>Member 3</h4>
 
-                    <label data-i18n="memberName">Name</label>
-                    <input type="text" name="member_name_3" data-placeholder="memberNamePlaceholder" placeholder="Enter member name" required>
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        name="member_name_3"
+                        placeholder="Enter member name"
+                        required
+                    >
 
-                    <label data-i18n="memberPhone">Phone Number</label>
-                    <input type="tel" name="member_phone_3" data-placeholder="memberPhonePlaceholder" placeholder="Enter member phone" required>
+                    <label>Phone Number</label>
+                    <input
+                        type="tel"
+                        name="member_phone_3"
+                        placeholder="Enter member phone"
+                        required
+                    >
 
-                    <label data-i18n="relationship">Relationship</label>
-                    <input type="text" name="relationship_3" data-placeholder="relationshipPlaceholder" placeholder="Example: Mother, Father, Brother, Friend" required>
+                    <label>Relationship</label>
+                    <input
+                        type="text"
+                        name="relationship_3"
+                        placeholder="Example: Mother, Father, Brother, Friend"
+                        required
+                    >
                 </div>
 
-                <button type="submit" data-i18n="signup">Sign Up</button>
+                <button type="submit">Sign Up</button>
             </form>
 
             <p class="auth-switch-text">
-                <span data-i18n="alreadyHaveAccount">I already have an account.</span>
-                <button type="button" class="auth-switch-btn" onclick="showLogin()" data-i18n="loginHere">
+                I already have an account.
+                <button
+                    type="button"
+                    class="auth-switch-btn"
+                    onclick="showLogin()"
+                >
                     Login here
                 </button>
             </p>
         </div>
 
+        <!-- Login Form -->
         <div class="box auth-box" id="loginBox">
-            <h2 data-i18n="loginTitle">Login to Wesiya</h2>
-            <p class="small-text" data-i18n="loginText">
+            <h2>Login to Wesiya</h2>
+
+            <p class="small-text">
                 Welcome back. Login to continue your writing and voice recording journey.
             </p>
 
             <form action="/login" method="POST">
-                <label data-i18n="email">Email</label>
-                <input type="email" name="email" value="{{ login_email or '' }}" data-placeholder="enterEmail" placeholder="Enter your email" required>
+                <label>Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ login_email or '' }}"
+                    placeholder="Enter your email"
+                    required
+                >
 
-                <label data-i18n="password">Password</label>
-                <input type="password" name="password" data-placeholder="enterPassword" placeholder="Enter your password" required>
+                <label>Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                >
 
-                <button type="submit" data-i18n="login">Login</button>
+                <button type="submit">Login</button>
             </form>
 
             <p class="auth-switch-text">
-                <span data-i18n="noAccount">I do not have an account.</span>
-                <button type="button" class="auth-switch-btn" onclick="showSignup()" data-i18n="signupHere">
+                I do not have an account.
+                <button
+                    type="button"
+                    class="auth-switch-btn"
+                    onclick="showSignup()"
+                >
                     Sign up here
                 </button>
             </p>
         </div>
 
+        <!-- Trusted Member Access -->
         <div class="trusted-access-link">
-            <p data-i18n="trustedText">If you are a trusted family member:</p>
-            <a href="/trusted-access" class="danger-access-btn" data-i18n="deadButton">He is dead!</a>
+            <p>If you are a trusted family member:</p>
+            <a href="/trusted-access" class="danger-access-btn">He is dead!</a>
         </div>
 
     </div>
@@ -142,7 +232,6 @@
     <script>
         const signupBox = document.getElementById("signupBox");
         const loginBox = document.getElementById("loginBox");
-        const pageHtml = document.getElementById("pageHtml");
 
         function showSignup() {
             signupBox.style.display = "block";
@@ -154,152 +243,6 @@
             loginBox.style.display = "block";
         }
 
-        const translations = {
-            en: {
-                language: "Language:",
-                loginTitle: "Login to Wesiya",
-                loginText: "Welcome back. Login to continue your writing and voice recording journey.",
-                signupTitle: "Create Your Wesiya Account",
-                signupText: "Start your Wesiya space to save writing updates, voice records, personal information, and trusted family members.",
-                email: "Email",
-                password: "Password",
-                login: "Login",
-                signup: "Sign Up",
-                noAccount: "I do not have an account.",
-                signupHere: "Sign up here",
-                alreadyHaveAccount: "I already have an account.",
-                loginHere: "Login here",
-                personalInfo: "Personal Information",
-                fullName: "Full Name",
-                phoneNumber: "Phone Number",
-                dateOfBirth: "Date of Birth",
-                height: "Height",
-                trustedMembers: "Trusted / Family Members",
-                member: "Member",
-                memberName: "Name",
-                memberPhone: "Phone Number",
-                relationship: "Relationship",
-                trustedText: "If you are a trusted family member:",
-                deadButton: "He is dead!",
-                enterEmail: "Enter your email",
-                enterPassword: "Enter your password",
-                createEmail: "Create email",
-                createPassword: "Create password",
-                fullNamePlaceholder: "Enter your full name",
-                phonePlaceholder: "Enter your phone number",
-                heightPlaceholder: "Example: 175 cm",
-                memberNamePlaceholder: "Enter member name",
-                memberPhonePlaceholder: "Enter member phone",
-                relationshipPlaceholder: "Example: Mother, Father, Brother, Friend"
-            },
-            am: {
-                language: "ቋንቋ:",
-                loginTitle: "ወደ ወሲያ ግባ",
-                loginText: "እንኳን ተመለሱ። የጽሁፍ እና የድምጽ መዝገቦችዎን ለመቀጠል ይግቡ።",
-                signupTitle: "የወሲያ መለያ ይፍጠሩ",
-                signupText: "የጽሁፍ መዝገቦች፣ የድምጽ መዝገቦች፣ የግል መረጃ እና የታመኑ ቤተሰብ አባላትን ለማስቀመጥ ይጀምሩ።",
-                email: "ኢሜይል",
-                password: "የይለፍ ቃል",
-                login: "ግባ",
-                signup: "መለያ ፍጠር",
-                noAccount: "መለያ የለኝም።",
-                signupHere: "እዚህ ይመዝገቡ",
-                alreadyHaveAccount: "አስቀድሜ መለያ አለኝ።",
-                loginHere: "እዚህ ይግቡ",
-                personalInfo: "የግል መረጃ",
-                fullName: "ሙሉ ስም",
-                phoneNumber: "ስልክ ቁጥር",
-                dateOfBirth: "የትውልድ ቀን",
-                height: "ቁመት",
-                trustedMembers: "የታመኑ / የቤተሰብ አባላት",
-                member: "አባል",
-                memberName: "ስም",
-                memberPhone: "ስልክ ቁጥር",
-                relationship: "ዝምድና",
-                trustedText: "የታመነ የቤተሰብ አባል ከሆኑ:",
-                deadButton: "እሱ ሞቷል!",
-                enterEmail: "ኢሜይልዎን ያስገቡ",
-                enterPassword: "የይለፍ ቃልዎን ያስገቡ",
-                createEmail: "ኢሜይል ይፍጠሩ",
-                createPassword: "የይለፍ ቃል ይፍጠሩ",
-                fullNamePlaceholder: "ሙሉ ስምዎን ያስገቡ",
-                phonePlaceholder: "ስልክ ቁጥርዎን ያስገቡ",
-                heightPlaceholder: "ምሳሌ: 175 cm",
-                memberNamePlaceholder: "የአባሉን ስም ያስገቡ",
-                memberPhonePlaceholder: "የአባሉን ስልክ ያስገቡ",
-                relationshipPlaceholder: "ምሳሌ: እናት፣ አባት፣ ወንድም፣ ጓደኛ"
-            },
-            ar: {
-                language: "اللغة:",
-                loginTitle: "تسجيل الدخول إلى وسيّا",
-                loginText: "مرحبًا بعودتك. سجّل الدخول لمتابعة كتاباتك وتسجيلاتك الصوتية.",
-                signupTitle: "إنشاء حساب وسيّا",
-                signupText: "ابدأ مساحة وسيّا لحفظ الكتابات والتسجيلات الصوتية والمعلومات الشخصية وأفراد العائلة الموثوقين.",
-                email: "البريد الإلكتروني",
-                password: "كلمة المرور",
-                login: "تسجيل الدخول",
-                signup: "إنشاء حساب",
-                noAccount: "ليس لدي حساب.",
-                signupHere: "سجّل هنا",
-                alreadyHaveAccount: "لدي حساب بالفعل.",
-                loginHere: "ادخل هنا",
-                personalInfo: "المعلومات الشخصية",
-                fullName: "الاسم الكامل",
-                phoneNumber: "رقم الهاتف",
-                dateOfBirth: "تاريخ الميلاد",
-                height: "الطول",
-                trustedMembers: "أفراد موثوقون / من العائلة",
-                member: "الشخص",
-                memberName: "الاسم",
-                memberPhone: "رقم الهاتف",
-                relationship: "العلاقة",
-                trustedText: "إذا كنت فردًا موثوقًا من العائلة:",
-                deadButton: "لقد مات!",
-                enterEmail: "أدخل بريدك الإلكتروني",
-                enterPassword: "أدخل كلمة المرور",
-                createEmail: "أنشئ بريدًا إلكترونيًا",
-                createPassword: "أنشئ كلمة مرور",
-                fullNamePlaceholder: "أدخل اسمك الكامل",
-                phonePlaceholder: "أدخل رقم هاتفك",
-                heightPlaceholder: "مثال: 175 cm",
-                memberNamePlaceholder: "أدخل اسم الشخص",
-                memberPhonePlaceholder: "أدخل رقم هاتف الشخص",
-                relationshipPlaceholder: "مثال: أم، أب، أخ، صديق"
-            }
-        };
-
-        function changeLanguage(language) {
-            localStorage.setItem("wesiyaLanguage", language);
-
-            const selected = translations[language];
-
-            document.querySelectorAll("[data-i18n]").forEach((element) => {
-                const key = element.getAttribute("data-i18n");
-                if (selected[key]) {
-                    element.textContent = selected[key];
-                }
-            });
-
-            document.querySelectorAll("[data-placeholder]").forEach((element) => {
-                const key = element.getAttribute("data-placeholder");
-                if (selected[key]) {
-                    element.placeholder = selected[key];
-                }
-            });
-
-            if (language === "ar") {
-                pageHtml.setAttribute("dir", "rtl");
-                document.body.classList.add("rtl-page");
-            } else {
-                pageHtml.setAttribute("dir", "ltr");
-                document.body.classList.remove("rtl-page");
-            }
-        }
-
-        const savedLanguage = localStorage.getItem("wesiyaLanguage") || "en";
-        document.getElementById("languageSelect").value = savedLanguage;
-        changeLanguage(savedLanguage);
-
         const defaultForm = "{{ default_form or 'login' }}";
 
         if (defaultForm === "signup") {
@@ -308,6 +251,7 @@
             showLogin();
         }
     </script>
-<script src="{{ url_for('static', filename='translator.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='translator.js') }}"></script>
 </body>
 </html>
