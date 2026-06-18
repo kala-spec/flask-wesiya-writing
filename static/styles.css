@@ -1173,3 +1173,96 @@ button {
         margin-top: 10px;
     }
 }
+/* ===============================
+   Phase 1 UX cleanup
+   =============================== */
+
+.pages {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+.pages a,
+.pages button {
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.box,
+.card,
+.auth-box,
+.trusted-member-box {
+    border-radius: 18px;
+}
+
+button,
+.btn,
+.auth-switch-btn,
+.danger-access-btn,
+.pages a {
+    min-height: 44px;
+    cursor: pointer;
+}
+
+input,
+textarea,
+select {
+    min-height: 44px;
+    font-size: 16px;
+}
+
+.small-text {
+    line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+    .container {
+        width: 94%;
+        margin: 0 auto;
+    }
+
+    .pages {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .pages a,
+    .pages button {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    button,
+    .btn,
+    .auth-switch-btn,
+    .danger-access-btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        font-size: 28px;
+        line-height: 1.2;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+}
