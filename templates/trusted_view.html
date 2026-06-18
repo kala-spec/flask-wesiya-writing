@@ -9,12 +9,37 @@
 
 <body>
 
-    <nav class="pages">
-        <ul>
-            <li><a href="/trusted-view">Trusted View</a></li>
-            <li><a href="/trusted-logout" class="logout-link">Logout</a></li>
-        </ul>
-    </nav>
+    <nav class="pages compact-pages no-translate">
+    <ul class="main-nav-links">
+        <li>
+            <a href="/home">Home</a>
+        </li>
+
+        <li>
+            <a href="/dashboard">New Wesiya</a>
+        </li>
+
+        <li>
+            <a href="/profile">My Wesiya</a>
+        </li>
+
+        <li class="more-nav-wrapper">
+            <button
+                type="button"
+                class="more-nav-btn"
+                onclick="toggleMoreMenu(event)"
+                aria-label="More menu"
+            >
+                ⋮
+            </button>
+
+            <div class="more-nav-menu" id="moreNavMenu">
+                <a href="/about">About</a>
+                <a href="/logout" class="logout-link">Logout</a>
+            </div>
+        </li>
+    </ul>
+</nav>
 
     <section class="dashboard-header">
         <h1>Trusted Access for {{ owner_name }}</h1>
@@ -92,6 +117,27 @@
         </section>
 
     </main>
+
+    <script>
+    function toggleMoreMenu(event) {
+        event.stopPropagation();
+
+        const menu = document.getElementById("moreNavMenu");
+
+        if (menu) {
+            menu.classList.toggle("show-more-nav-menu");
+        }
+    }
+
+    document.addEventListener("click", function () {
+        const menu = document.getElementById("moreNavMenu");
+
+        if (menu) {
+            menu.classList.remove("show-more-nav-menu");
+        }
+    });
+</script>
+
 <script src="{{ url_for('static', filename='translator.js') }}"></script>
 </body>
 </html>
