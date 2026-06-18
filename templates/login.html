@@ -29,6 +29,7 @@
             </p>
 
             <form action="/signup" method="POST">
+
                 <label>Email</label>
                 <input
                     type="email"
@@ -39,12 +40,23 @@
                 >
 
                 <label>Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Create password"
-                    required
-                >
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        name="password"
+                        id="signupPassword"
+                        placeholder="Create password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle-btn"
+                        onclick="togglePassword('signupPassword', this)"
+                    >
+                        Show
+                    </button>
+                </div>
 
                 <h3 class="form-section-title">Personal Information</h3>
 
@@ -81,103 +93,34 @@
 
                 <h3 class="form-section-title">Trusted / Family Members</h3>
 
-                <div class="trusted-member-box">
-                    <h4>Member 1</h4>
+                <p class="small-text">
+                    Please add at least 2 trusted family members. You can add up to 5 members.
+                </p>
 
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        name="member_name_1"
-                        placeholder="Enter member name"
-                        required
-                    >
+                <div id="trustedMembersContainer"></div>
 
-                    <label>Phone Number</label>
-                    <input
-                        type="tel"
-                        name="member_phone_1"
-                        placeholder="Enter member phone"
-                        required
-                    >
+                <button
+                    type="button"
+                    id="addMemberBtn"
+                    class="secondary-btn"
+                    onclick="addTrustedMember()"
+                >
+                    Add Member
+                </button>
 
-                    <label>Relationship</label>
-                    <input
-                        type="text"
-                        name="relationship_1"
-                        placeholder="Example: Mother, Father, Brother, Friend"
-                        required
-                    >
-                </div>
-
-                <div class="trusted-member-box">
-                    <h4>Member 2</h4>
-
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        name="member_name_2"
-                        placeholder="Enter member name"
-                        required
-                    >
-
-                    <label>Phone Number</label>
-                    <input
-                        type="tel"
-                        name="member_phone_2"
-                        placeholder="Enter member phone"
-                        required
-                    >
-
-                    <label>Relationship</label>
-                    <input
-                        type="text"
-                        name="relationship_2"
-                        placeholder="Example: Mother, Father, Brother, Friend"
-                        required
-                    >
-                </div>
-
-                <div class="trusted-member-box">
-                    <h4>Member 3</h4>
-
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        name="member_name_3"
-                        placeholder="Enter member name"
-                        required
-                    >
-
-                    <label>Phone Number</label>
-                    <input
-                        type="tel"
-                        name="member_phone_3"
-                        placeholder="Enter member phone"
-                        required
-                    >
-
-                    <label>Relationship</label>
-                    <input
-                        type="text"
-                        name="relationship_3"
-                        placeholder="Example: Mother, Father, Brother, Friend"
-                        required
-                    >
-                </div>
-
-                <button type="submit">Sign Up</button>
+                <button type="submit" class="main-submit-btn">Sign Up</button>
             </form>
 
             <p class="auth-switch-text">
-    <span>I already have an account.</span>
-    <button
-        type="button"
-        class="auth-switch-btn"
-        onclick="showLogin()"
-    >
-        Login here
-    </button>
-</p>
+                <span>I already have an account.</span>
+                <button
+                    type="button"
+                    class="auth-switch-btn"
+                    onclick="showLogin()"
+                >
+                    Login here
+                </button>
+            </p>
         </div>
 
         <!-- Login Form -->
@@ -189,6 +132,7 @@
             </p>
 
             <form action="/login" method="POST">
+
                 <label>Email</label>
                 <input
                     type="email"
@@ -199,46 +143,93 @@
                 >
 
                 <label>Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    required
-                >
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        name="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                        required
+                    >
 
-                <button type="submit">Login</button>
+                    <button
+                        type="button"
+                        class="password-toggle-btn"
+                        onclick="togglePassword('loginPassword', this)"
+                    >
+                        Show
+                    </button>
+                </div>
+
+                <button type="submit" class="main-submit-btn">Login</button>
             </form>
-<p class="auth-switch-text">
-    <span>I do not have an account.</span>
-    <button
-        type="button"
-        class="auth-switch-btn"
-        onclick="showSignup()"
-    >
-        Sign up here
-    </button>
-</p>
+
+            <p class="auth-switch-text">
+                <span>I do not have an account.</span>
+                <button
+                    type="button"
+                    class="auth-switch-btn"
+                    onclick="showSignup()"
+                >
+                    Sign up here
+                </button>
+            </p>
         </div>
 
         <!-- Trusted Member Access -->
         <div class="trusted-access-link">
-    <p><span>If you are a trusted family member:</span></p>
-    <a href="/trusted-access" class="danger-access-btn">He is dead!</a>
-</div>
+            <p>
+                <span>If you are a trusted family member:</span>
+            </p>
+
+            <a href="/trusted-access" class="danger-access-btn">
+                He is dead!
+            </a>
+        </div>
+
     </div>
 
     <script>
         const signupBox = document.getElementById("signupBox");
         const loginBox = document.getElementById("loginBox");
 
+        let trustedMemberCount = 0;
+        const minTrustedMembers = 2;
+        const maxTrustedMembers = 5;
+
         function showSignup() {
             signupBox.style.display = "block";
             loginBox.style.display = "none";
+
+            const existingBoxes = document.querySelectorAll(
+                "#trustedMembersContainer .trusted-member-box"
+            );
+
+            if (existingBoxes.length === 0) {
+                addTrustedMember();
+                addTrustedMember();
+            }
         }
 
         function showLogin() {
             signupBox.style.display = "none";
             loginBox.style.display = "block";
+        }
+
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+
+            if (!input) {
+                return;
+            }
+
+            if (input.type === "password") {
+                input.type = "text";
+                button.innerText = "Hide";
+            } else {
+                input.type = "password";
+                button.innerText = "Show";
+            }
         }
 
         const defaultForm = "{{ default_form or 'login' }}";
@@ -247,6 +238,133 @@
             showSignup();
         } else {
             showLogin();
+        }
+
+        function addTrustedMember() {
+            const currentBoxes = document.querySelectorAll(
+                "#trustedMembersContainer .trusted-member-box"
+            );
+
+            trustedMemberCount = currentBoxes.length;
+
+            if (trustedMemberCount >= maxTrustedMembers) {
+                alert("You can only add up to 5 trusted members.");
+                return;
+            }
+
+            trustedMemberCount += 1;
+
+            const container = document.getElementById("trustedMembersContainer");
+
+            const memberBox = document.createElement("div");
+            memberBox.className = "trusted-member-box";
+
+            memberBox.innerHTML = `
+                <div class="member-box-header">
+                    <h4>Member ${trustedMemberCount}</h4>
+
+                    <button
+                        type="button"
+                        class="remove-member-btn"
+                        onclick="removeTrustedMember(this)"
+                    >
+                        Delete
+                    </button>
+                </div>
+
+                <label>Name</label>
+                <input
+                    type="text"
+                    name="member_name[]"
+                    placeholder="Enter member name"
+                    required
+                >
+
+                <label>Phone Number</label>
+                <input
+                    type="tel"
+                    name="member_phone[]"
+                    placeholder="Enter member phone"
+                    required
+                >
+
+                <label>Relationship</label>
+                <input
+                    type="text"
+                    name="relationship[]"
+                    placeholder="Example: Mother, Father, Brother, Friend"
+                    required
+                >
+            `;
+
+            container.appendChild(memberBox);
+
+            updateMemberButtons();
+            renumberTrustedMembers();
+        }
+
+        function removeTrustedMember(button) {
+            const boxes = document.querySelectorAll(
+                "#trustedMembersContainer .trusted-member-box"
+            );
+
+            if (boxes.length <= minTrustedMembers) {
+                alert("You must keep at least 2 trusted members.");
+                return;
+            }
+
+            const box = button.closest(".trusted-member-box");
+
+            if (box) {
+                box.remove();
+            }
+
+            updateMemberButtons();
+            renumberTrustedMembers();
+        }
+
+        function renumberTrustedMembers() {
+            const boxes = document.querySelectorAll(
+                "#trustedMembersContainer .trusted-member-box"
+            );
+
+            boxes.forEach((box, index) => {
+                const heading = box.querySelector("h4");
+
+                if (heading) {
+                    heading.innerText = `Member ${index + 1}`;
+                }
+            });
+
+            trustedMemberCount = boxes.length;
+        }
+
+        function updateMemberButtons() {
+            const addMemberBtn = document.getElementById("addMemberBtn");
+
+            const boxes = document.querySelectorAll(
+                "#trustedMembersContainer .trusted-member-box"
+            );
+
+            trustedMemberCount = boxes.length;
+
+            if (addMemberBtn) {
+                if (trustedMemberCount >= maxTrustedMembers) {
+                    addMemberBtn.style.display = "none";
+                } else {
+                    addMemberBtn.style.display = "block";
+                }
+            }
+
+            const deleteButtons = document.querySelectorAll(".remove-member-btn");
+
+            deleteButtons.forEach((button) => {
+                if (trustedMemberCount <= minTrustedMembers) {
+                    button.style.display = "none";
+                } else {
+                    button.style.display = "inline-block";
+                }
+            });
         }
     </script>
 

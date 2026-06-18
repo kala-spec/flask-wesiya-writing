@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wesiya</title>
+    <title>My Wesiya | Wesiya</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
@@ -12,156 +12,244 @@
     <nav class="pages">
         <ul>
             <li><a href="/home">Home</a></li>
-            <a href="/dashboard">New Wesiya</a>
+            <li><a href="/dashboard">New Wesiya</a></li>
             <li><a href="/profile">My Wesiya</a></li>
             <li><a href="/about">About</a></li>
-            
             <li><a href="/logout" class="logout-link">Logout</a></li>
-            
         </ul>
     </nav>
 
     <section class="dashboard-header">
         <h1>My Wesiya</h1>
-
-        <p>
-            Your personal space for writing  your daily wesiya after death!.
-        </p>
+        <p>Review your saved writing and voice updates.</p>
     </section>
 
     <main class="profile-wrapper">
 
-        {% if notes or voice_notes %}
+        <!-- User Summary -->
+        <section class="profile-card profile-summary">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ user.full_name[0]|upper if user and user.full_name else "W" }}
+                </div>
 
-            <div class="profile-card profile-summary">
-                <div class="profile-header">
-                    <div class="profile-avatar">
-                        {% if notes %}
-                            {{ notes[0].email[0] | upper }}
-                        {% elif voice_notes %}
-                            {{ voice_notes[0].email[0] | upper }}
-                        {% else %}
-                            W
-                        {% endif %}
-                    </div>
-
-                    <div>
-                        <h2>
-                            {% if notes %}
-                                {{ notes[0].email }}
-                            {% elif voice_notes %}
-                                {{ voice_notes[0].email }}
-                            {% else %}
-                                Wesiya User
-                            {% endif %}
-                        </h2>
-
-                        <p>Your Wesiya account</p>
-                    </div>
+                <div>
+                    <h2>{{ user.full_name if user and user.full_name else "Wesiya User" }}</h2>
+                    <p>{{ user.email if user else "" }}</p>
                 </div>
             </div>
+        </section>
 
-            <section class="notes-section">
-                <h2>My Writing Updates</h2>
+        <!-- Written Updates -->
+        <section class="notes-section">
+            <h2>Written Updates</h2>
 
-                {% if notes %}
-                    {% for item in notes %}
-                        <div class="profile-card note-card">
+            <p class="small-text">
+                Long press a note to edit or delete it.
+            </p>
 
-                            <div class="profile-row">
-                                <span>Email</span>
-                                <p>{{ item.email }}</p>
+            {% if notes %}
+                <div class="modern-notes-grid">
+                    {% for note in notes %}
+                        <article class="modern-note-card">
+
+                            <!-- Read-only note view -->
+                            <div
+                                class="modern-note-content"
+                                data-note-id="{{ note.id }}"
+                                onmousedown="startNotePress(event, '{{ note.id }}')"
+                                onmouseup="cancelNotePress()"
+                                onmouseleave="cancelNotePress()"
+                                ontouchstart="startNotePress(event, '{{ note.id }}')"
+                                ontouchend="cancelNotePress()"
+                                ontouchcancel="cancelNotePress()"
+                            >
+                                <div class="modern-note-top">
+                                    <span class="modern-note-label">Written Update</span>
+                                    <span class="modern-note-hint">Long press</span>
+                                </div>
+
+                                <div class="modern-note-text-box">
+                                    <p class="modern-note-text">
+                                        {{ note.daily_note }}
+                                    </p>
+                                </div>
+
+                                <div class="modern-note-footer">
+                                    <span>Saved</span>
+                                    <strong>{{ note.created_at }}</strong>
+                                </div>
                             </div>
 
-                            <div class="profile-row">
-                                <span>Writing Update</span>
-                                <p>{{ item.daily_note }}</p>
+                            <!-- Hidden edit form -->
+                            <div class="note-edit-box" id="editBox{{ note.id }}">
+                                <form action="/note/edit/{{ note.id }}" method="POST">
+                                    <label>Edit Note</label>
+
+                                    <textarea name="note" required>{{ note.daily_note }}</textarea>
+
+                                    <button type="submit">Save Changes</button>
+
+                                    <button
+                                        type="button"
+                                        class="secondary-btn"
+                                        onclick="hideEditBox('{{ note.id }}')"
+                                    >
+                                        Cancel
+                                    </button>
+                                </form>
                             </div>
 
-                            <div class="profile-row">
-                                <span>Saved At</span>
-                                <p>{{ item.created_at }}</p>
-                            </div>
-
-                        </div>
+                            <!-- Hidden delete form -->
+                            <form
+                                id="deleteForm{{ note.id }}"
+                                action="/note/delete/{{ note.id }}"
+                                method="POST"
+                                style="display: none;"
+                            ></form>
+                        </article>
                     {% endfor %}
-                {% else %}
-                    <div class="profile-card empty-profile">
-                        <h2>No Writing Updates Yet</h2>
-                        <p>You have not saved any writing updates in your Wesiya space yet.</p>
+                </div>
+            {% else %}
+                <div class="profile-card empty-profile">
+                    <h2>No written updates yet</h2>
+                    <p>Go to New Wesiya to write your first update.</p>
+                    <a href="/dashboard" class="main-link">Create New Wesiya</a>
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- Voice Updates -->
+        <section class="notes-section">
+            <h2>Voice Updates</h2>
+
+            {% if voice_notes %}
+                {% for voice in voice_notes %}
+                    <div class="profile-card note-card">
+                        <p class="small-text">
+                            Saved on {{ voice.created_at }}
+                        </p>
+
+                        <audio controls class="voice-player">
+                            <source src="{{ url_for('static', filename='uploads/' + voice.filename) }}">
+                            Your browser does not support audio playback.
+                        </audio>
                     </div>
-                {% endif %}
-            </section>
-
-            <section class="notes-section">
-                <h2>My Voice Updates</h2>
-
-                {% if voice_notes %}
-                    {% for voice in voice_notes %}
-                        <div class="profile-card note-card">
-
-                            <div class="profile-row">
-                                <span>Email</span>
-                                <p>{{ voice.email }}</p>
-                            </div>
-
-                            <div class="profile-row">
-                                <span>Voice File</span>
-                                <p>{{ voice.filename }}</p>
-                            </div>
-
-                            <div class="profile-row">
-                                <span>Play Voice Update</span>
-
-                                <audio controls class="voice-player">
-                                    <source src="{{ url_for('uploaded_file', filename=voice.filename) }}" type="audio/webm">
-                                    Your browser does not support the audio element.
-                                </audio>
-                            </div>
-
-                            <div class="profile-row">
-                                <span>Recorded At</span>
-                                <p>{{ voice.created_at }}</p>
-                            </div>
-
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="profile-card empty-profile">
-                        <h2>No Voice Updates Yet</h2>
-                        <p>You have not recorded any voice updates in your Wesiya space yet.</p>
-                    </div>
-                {% endif %}
-            </section>
-
-        {% else %}
-
-            <div class="profile-card empty-profile">
-                <h2>My Wesiya Is Empty</h2>
-
-                <p>
-                    Your Wesiya space is currently empty. After you save a writing update
-                    or record a voice update, your saved work will appear here.
-                </p>
-
-                <a href="/dashboard" class="main-link">Go to Dashboard</a>
-            </div>
-
-        {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="profile-card empty-profile">
+                    <h2>No voice updates yet</h2>
+                    <p>Go to New Wesiya to upload your first voice update.</p>
+                </div>
+            {% endif %}
+        </section>
 
     </main>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: "en",
-                includedLanguages: "en,am,ar",
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-            }, "google_translate_element");
+    <!-- Long press action menu -->
+    <div class="note-action-overlay" id="noteActionOverlay" onclick="closeNoteActions()">
+        <div class="note-action-menu" onclick="event.stopPropagation()">
+            <h3>Note Options</h3>
+
+            <button type="button" onclick="openSelectedNoteEdit()">
+                Edit Note
+            </button>
+
+            <button type="button" class="delete-action-btn" onclick="deleteSelectedNote()">
+                Delete Note
+            </button>
+
+            <button type="button" class="secondary-btn" onclick="closeNoteActions()">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let notePressTimer = null;
+        let selectedNoteId = null;
+
+        function startNotePress(event, noteId) {
+            selectedNoteId = noteId;
+
+            notePressTimer = setTimeout(() => {
+                openNoteActions(noteId);
+            }, 650);
+        }
+
+        function cancelNotePress() {
+            if (notePressTimer) {
+                clearTimeout(notePressTimer);
+                notePressTimer = null;
+            }
+        }
+
+        function openNoteActions(noteId) {
+            selectedNoteId = noteId;
+
+            const overlay = document.getElementById("noteActionOverlay");
+
+            if (overlay) {
+                overlay.classList.add("show-note-actions");
+            }
+        }
+
+        function closeNoteActions() {
+            const overlay = document.getElementById("noteActionOverlay");
+
+            if (overlay) {
+                overlay.classList.remove("show-note-actions");
+            }
+
+            selectedNoteId = null;
+        }
+
+        function openSelectedNoteEdit() {
+            if (!selectedNoteId) {
+                return;
+            }
+
+            const editBox = document.getElementById(`editBox${selectedNoteId}`);
+
+            if (editBox) {
+                editBox.style.display = "block";
+                editBox.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            }
+
+            closeNoteActions();
+        }
+
+        function hideEditBox(noteId) {
+            const editBox = document.getElementById(`editBox${noteId}`);
+
+            if (editBox) {
+                editBox.style.display = "none";
+            }
+        }
+
+        function deleteSelectedNote() {
+            if (!selectedNoteId) {
+                return;
+            }
+
+            const confirmDelete = confirm("Are you sure you want to delete this note?");
+
+            if (!confirmDelete) {
+                closeNoteActions();
+                return;
+            }
+
+            const deleteForm = document.getElementById(`deleteForm${selectedNoteId}`);
+
+            if (deleteForm) {
+                deleteForm.submit();
+            }
         }
     </script>
 
-    
-<script src="{{ url_for('static', filename='translator.js') }}"></script>
+    <script src="{{ url_for('static', filename='translator.js') }}"></script>
 </body>
 </html>

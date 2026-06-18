@@ -459,33 +459,80 @@ def dashboard():
 @app.route("/profile")
 def profile():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        return redirect("/")
 
-    notes = get_text_notes_by_user(session["user_id"])
-    voice_notes = get_voice_notes_by_user(session["user_id"])
+    conn = sqlite3.connect("wesiya.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, email, full_name, phone_number, date_of_birth, height
+        FROM users
+        WHERE id = ?
+    """, (session["user_id"],))
+
+    user = cursor.fetchone()
+
+    cursor.execute("""
+    SELECT id, daily_note, created_at
+    FROM notes
+    WHERE user_id = ?
+    ORDER BY id DESC
+""", (session["user_id"],))
+
+    notes = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, filename, created_at
+        FROM voice_notes
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (session["user_id"],))
+
+    voice_notes = cursor.fetchall()
+
+    conn.close()
 
     return render_template(
         "profile.html",
+        user=user,
         notes=notes,
         voice_notes=voice_notes
     )
 
-
 @app.route("/about")
 def about():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        return redirect("/")
 
-    profile = get_user_profile(session["user_id"])
-    trusted_members = get_trusted_members(session["user_id"])
+    conn = sqlite3.connect("wesiya.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, email, full_name, phone_number, date_of_birth, height
+        FROM users
+        WHERE id = ?
+    """, (session["user_id"],))
+
+    user = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT id, member_name, member_phone, relationship
+        FROM trusted_members
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (session["user_id"],))
+
+    trusted_members = cursor.fetchall()
+
+    conn.close()
 
     return render_template(
         "about.html",
-        email=session.get("email"),
-        profile=profile,
+        user=user,
         trusted_members=trusted_members
     )
-
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
@@ -525,88 +572,297 @@ def login_user():
 
 
 @app.route("/signup", methods=["POST"])
-def signup_user():
-    email = request.form.get("email")
-    password = request.form.get("password")
+def signup():
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "").strip()
 
-    full_name = request.form.get("full_name")
-    phone_number = request.form.get("phone_number")
-    date_of_birth = request.form.get("date_of_birth")
-    height = request.form.get("height")
-
-    trusted_members = [
-        {
-            "member_name": request.form.get("member_name_1"),
-            "member_phone": request.form.get("member_phone_1"),
-            "relationship": request.form.get("relationship_1")
-        },
-        {
-            "member_name": request.form.get("member_name_2"),
-            "member_phone": request.form.get("member_phone_2"),
-            "relationship": request.form.get("relationship_2")
-        },
-        {
-            "member_name": request.form.get("member_name_3"),
-            "member_phone": request.form.get("member_phone_3"),
-            "relationship": request.form.get("relationship_3")
-        }
-    ]
+    full_name = request.form.get("full_name", "").strip()
+    phone_number = request.form.get("phone_number", "").strip()
+    date_of_birth = request.form.get("date_of_birth", "").strip()
+    height = request.form.get("height", "").strip()
 
     if not email or not password:
         return render_template(
             "login.html",
             error="Email and password are required.",
-            default_form="signup"
+            default_form="signup",
+            signup_email=email
         )
 
     if not full_name or not phone_number or not date_of_birth or not height:
         return render_template(
             "login.html",
             error="Please complete your personal information.",
-            default_form="signup"
+            default_form="signup",
+            signup_email=email
         )
 
-    valid_members = []
+    member_names = request.form.getlist("member_name[]")
+    member_phones = request.form.getlist("member_phone[]")
+    relationships = request.form.getlist("relationship[]")
 
-    for member in trusted_members:
-        if member["member_name"] and member["member_phone"] and member["relationship"]:
-            valid_members.append(member)
+    complete_members = []
+    min_members = 2
+    max_members = 5
 
-    if len(valid_members) < 3:
+    for index in range(min(len(member_names), max_members)):
+        member_name = member_names[index].strip()
+
+        member_phone = ""
+        relationship = ""
+
+        if index < len(member_phones):
+            member_phone = member_phones[index].strip()
+
+        if index < len(relationships):
+            relationship = relationships[index].strip()
+
+        if member_name and member_phone and relationship:
+            complete_members.append({
+                "member_name": member_name,
+                "member_phone": member_phone,
+                "relationship": relationship
+            })
+
+    if len(complete_members) < min_members:
         return render_template(
             "login.html",
-            error="Please add at least 3 trusted or family members.",
-            default_form="signup"
+            error="Please add at least 2 complete trusted family members.",
+            default_form="signup",
+            signup_email=email
         )
 
-    existing_user = find_user_by_email(email)
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
 
-    if existing_user is not None:
+    try:
+        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            conn.close()
+            return render_template(
+                "login.html",
+                error="This email is already registered. Please login instead.",
+                default_form="login",
+                login_email=email
+            )
+
+        cursor.execute("""
+            INSERT INTO users
+            (
+                email,
+                password,
+                created_at,
+                full_name,
+                phone_number,
+                date_of_birth,
+                height
+            )
+            VALUES (?, ?, datetime('now'), ?, ?, ?, ?)
+        """, (
+            email,
+            password,
+            full_name,
+            phone_number,
+            date_of_birth,
+            height
+        ))
+
+        user_id = cursor.lastrowid
+
+        for member in complete_members:
+            cursor.execute("""
+                INSERT INTO trusted_members
+                (
+                    user_id,
+                    member_name,
+                    member_phone,
+                    relationship
+                )
+                VALUES (?, ?, ?, ?)
+            """, (
+                user_id,
+                member["member_name"],
+                member["member_phone"],
+                member["relationship"]
+            ))
+
+        conn.commit()
+
+        session["user_id"] = user_id
+        session["email"] = email
+
+        conn.close()
+        return redirect("/home")
+
+    except Exception as error:
+        conn.rollback()
+        conn.close()
+
+        print("Signup error:", error)
+
         return render_template(
             "login.html",
-            signup_message="This account already exists. Please login instead.",
-            login_email=email,
-            default_form="login"
+            error=f"Signup error: {error}",
+            default_form="signup",
+            signup_email=email
         )
+@app.route("/trusted-member/add", methods=["POST"])
+def add_trusted_member():
+    if "user_id" not in session:
+        return redirect("/")
 
-    create_user(email, password)
-    new_user = find_user_by_email(email)
+    member_name = request.form.get("member_name", "").strip()
+    member_phone = request.form.get("member_phone", "").strip()
+    relationship = request.form.get("relationship", "").strip()
 
-    save_user_profile(
-        new_user["id"],
-        full_name,
-        phone_number,
-        date_of_birth,
-        height
-    )
+    if not member_name or not member_phone or not relationship:
+        return redirect("/about")
 
-    save_trusted_members(new_user["id"], valid_members)
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
 
-    session["user_id"] = new_user["id"]
-    session["email"] = new_user["email"]
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM trusted_members
+        WHERE user_id = ?
+    """, (session["user_id"],))
 
-    return redirect(url_for("home"))
+    member_count = cursor.fetchone()[0]
 
+    if member_count >= 5:
+        conn.close()
+        return redirect("/about")
+
+    cursor.execute("""
+        INSERT INTO trusted_members
+        (user_id, member_name, member_phone, relationship)
+        VALUES (?, ?, ?, ?)
+    """, (
+        session["user_id"],
+        member_name,
+        member_phone,
+        relationship
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/about")
+
+
+@app.route("/trusted-member/edit/<int:member_id>", methods=["POST"])
+def edit_trusted_member(member_id):
+    if "user_id" not in session:
+        return redirect("/")
+
+    member_name = request.form.get("member_name", "").strip()
+    member_phone = request.form.get("member_phone", "").strip()
+    relationship = request.form.get("relationship", "").strip()
+
+    if not member_name or not member_phone or not relationship:
+        return redirect("/about")
+
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE trusted_members
+        SET member_name = ?, member_phone = ?, relationship = ?
+        WHERE id = ? AND user_id = ?
+    """, (
+        member_name,
+        member_phone,
+        relationship,
+        member_id,
+        session["user_id"]
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/about")
+
+
+@app.route("/trusted-member/delete/<int:member_id>", methods=["POST"])
+def delete_trusted_member(member_id):
+    if "user_id" not in session:
+        return redirect("/")
+
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM trusted_members
+        WHERE user_id = ?
+    """, (session["user_id"],))
+
+    member_count = cursor.fetchone()[0]
+
+    if member_count <= 2:
+        conn.close()
+        return redirect("/about")
+
+    cursor.execute("""
+        DELETE FROM trusted_members
+        WHERE id = ? AND user_id = ?
+    """, (member_id, session["user_id"]))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/about")
+@app.route("/note/edit/<int:note_id>", methods=["POST"])
+def edit_note(note_id):
+    if "user_id" not in session:
+        return redirect("/")
+
+    updated_note = request.form.get("note", "").strip()
+
+    if not updated_note:
+        return redirect("/profile")
+
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE notes
+    SET daily_note = ?
+    WHERE id = ? AND user_id = ?
+""", (
+    updated_note,
+    note_id,
+    session["user_id"]
+))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/profile")
+
+
+@app.route("/note/delete/<int:note_id>", methods=["POST"])
+def delete_note(note_id):
+    if "user_id" not in session:
+        return redirect("/")
+
+    conn = sqlite3.connect("wesiya.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM notes
+        WHERE id = ? AND user_id = ?
+    """, (
+        note_id,
+        session["user_id"]
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/profile")
 
 @app.route("/logout")
 def logout():

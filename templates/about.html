@@ -12,85 +12,155 @@
     <nav class="pages">
         <ul>
             <li><a href="/home">Home</a></li>
-            <a href="/dashboard">New Wesiya</a>
+            <li><a href="/dashboard">New Wesiya</a></li>
             <li><a href="/profile">My Wesiya</a></li>
             <li><a href="/about">About</a></li>
-            
             <li><a href="/logout" class="logout-link">Logout</a></li>
         </ul>
     </nav>
 
     <section class="dashboard-header">
-        <h1>About My Wesiya</h1>
-        <p>This page stores your personal information and trusted family members.</p>
+        <h1>About Me</h1>
+        <p>Manage your personal information and trusted family members.</p>
     </section>
 
     <main class="profile-wrapper">
 
-        {% if profile %}
-
-            <div class="profile-card note-card">
-                <h2>Personal Information</h2>
-
-                <div class="profile-row">
-                    <span>Email</span>
-                    <p>{{ email }}</p>
+        <section class="profile-card profile-summary">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ user.full_name[0]|upper if user and user.full_name else "W" }}
                 </div>
 
-                <div class="profile-row">
-                    <span>Full Name</span>
-                    <p>{{ profile.full_name }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Phone Number</span>
-                    <p>{{ profile.phone_number }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Date of Birth</span>
-                    <p>{{ profile.date_of_birth }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Height</span>
-                    <p>{{ profile.height }}</p>
+                <div>
+                    <h2>{{ user.full_name if user and user.full_name else "Wesiya User" }}</h2>
+                    <p>{{ user.email if user else "" }}</p>
                 </div>
             </div>
+        </section>
 
-            <section class="notes-section">
-                <h2>Trusted / Family Members</h2>
+        <section class="profile-card">
+            <h2>Personal Information</h2>
 
-                {% for member in trusted_members %}
-                    <div class="profile-card note-card">
-                        <div class="profile-row">
-                            <span>Name</span>
-                            <p>{{ member.member_name }}</p>
-                        </div>
+            <div class="profile-row">
+                <span>Full Name</span>
+                <p>{{ user.full_name if user and user.full_name else "Not added" }}</p>
+            </div>
 
-                        <div class="profile-row">
-                            <span>Phone Number</span>
-                            <p>{{ member.member_phone }}</p>
-                        </div>
+            <div class="profile-row">
+                <span>Phone Number</span>
+                <p>{{ user.phone_number if user and user.phone_number else "Not added" }}</p>
+            </div>
 
-                        <div class="profile-row">
-                            <span>Relationship</span>
-                            <p>{{ member.relationship }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </section>
+            <div class="profile-row">
+                <span>Date of Birth</span>
+                <p>{{ user.date_of_birth if user and user.date_of_birth else "Not added" }}</p>
+            </div>
 
+            <div class="profile-row">
+                <span>Height</span>
+                <p>{{ user.height if user and user.height else "Not added" }}</p>
+            </div>
+        </section>
+
+        <section class="profile-card">
+            <h2>Trusted / Family Members</h2>
+
+            <p class="small-text">
+                You must keep at least 2 trusted members. You can add up to 5.
+            </p>
+
+            {% if trusted_members|length < 5 %}
+                <form action="/trusted-member/add" method="POST" class="member-management-form">
+                    <h3 class="form-section-title">Add New Member</h3>
+
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        name="member_name"
+                        placeholder="Enter member name"
+                        required
+                    >
+
+                    <label>Phone Number</label>
+                    <input
+                        type="tel"
+                        name="member_phone"
+                        placeholder="Enter member phone"
+                        required
+                    >
+
+                    <label>Relationship</label>
+                    <input
+                        type="text"
+                        name="relationship"
+                        placeholder="Example: Mother, Father, Brother, Friend"
+                        required
+                    >
+
+                    <button type="submit">Add Member</button>
+                </form>
+            {% else %}
+                <p class="small-text">
+                    You already have the maximum 5 trusted members.
+                </p>
+            {% endif %}
+        </section>
+
+        {% if trusted_members %}
+            {% for member in trusted_members %}
+                <section class="profile-card trusted-member-manage-card">
+                    <form action="/trusted-member/edit/{{ member.id }}" method="POST">
+                        <h3 class="form-section-title">Member {{ loop.index }}</h3>
+
+                        <label>Name</label>
+                        <input
+                            type="text"
+                            name="member_name"
+                            value="{{ member.member_name }}"
+                            required
+                        >
+
+                        <label>Phone Number</label>
+                        <input
+                            type="tel"
+                            name="member_phone"
+                            value="{{ member.member_phone }}"
+                            required
+                        >
+
+                        <label>Relationship</label>
+                        <input
+                            type="text"
+                            name="relationship"
+                            value="{{ member.relationship }}"
+                            required
+                        >
+
+                        <button type="submit">Save Changes</button>
+                    </form>
+
+                    {% if trusted_members|length > 2 %}
+                        <form
+                            action="/trusted-member/delete/{{ member.id }}"
+                            method="POST"
+                            onsubmit="return confirm('Are you sure you want to delete this trusted member?');"
+                        >
+                            <button type="submit" class="delete-action-btn">
+                                Delete Member
+                            </button>
+                        </form>
+                    {% endif %}
+                </section>
+            {% endfor %}
         {% else %}
-
-            <div class="profile-card empty-profile">
-                <h2>No Personal Information Found</h2>
-                <p>Your personal information has not been added yet.</p>
-            </div>
-
+            <section class="profile-card">
+                <p class="small-text">No trusted members added yet.</p>
+            </section>
         {% endif %}
 
     </main>
-<script src="{{ url_for('static', filename='translator.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='translator.js') }}"></script>
 </body>
 </html>

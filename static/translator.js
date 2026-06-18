@@ -1,5 +1,5 @@
 // ======================================================
-// Wesiya AI Translation
+// Wesiya AI Translation + Theme Toggle
 // Uses Flask backend + Gemini API.
 // Caches translations in localStorage.
 // Translates text, labels, links, and buttons safely.
@@ -24,7 +24,7 @@ function getTranslatableElements() {
         if (!text) return false;
         if (text.length > 350) return false;
 
-        // Do not translate the language bar itself
+        // Do not translate the language/theme bar itself
         if (element.closest(".no-translate")) return false;
         if (element.classList.contains("no-translate")) return false;
 
@@ -66,7 +66,7 @@ function applyTranslations(translations, targetLanguage) {
         }
     });
 
-    if (targetLanguage === "Arabic") {
+    if (targetLanguage === "Arabic" || targetLanguage === "Urdu") {
         document.documentElement.dir = "rtl";
         document.body.classList.add("rtl-page");
     } else {
@@ -149,6 +149,45 @@ async function translatePage(targetLanguage) {
     }
 }
 
+// ======================================================
+// Theme Toggle
+// ======================================================
+
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem("wesiya_theme") || "light";
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+
+        if (themeToggleBtn) {
+            themeToggleBtn.innerText = "Light";
+        }
+    } else {
+        document.body.classList.remove("dark-theme");
+
+        if (themeToggleBtn) {
+            themeToggleBtn.innerText = "Dark";
+        }
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.contains("dark-theme");
+
+    if (isDark) {
+        localStorage.setItem("wesiya_theme", "light");
+    } else {
+        localStorage.setItem("wesiya_theme", "dark");
+    }
+
+    applySavedTheme();
+}
+
+// ======================================================
+// Language Bar
+// ======================================================
+
 function addLanguageBar() {
     if (document.querySelector(".language-bar")) {
         return;
@@ -159,15 +198,32 @@ function addLanguageBar() {
 
     bar.innerHTML = `
         <span>Language</span>
+
         <select id="wesiyaLanguageSelect" onchange="translatePage(this.value)">
             <option value="English">English</option>
             <option value="Amharic">Amharic</option>
             <option value="Arabic">Arabic</option>
             <option value="Chinese">Chinese</option>
             <option value="Turkish">Turkish</option>
+            <option value="Somali">Somali</option>
+            <option value="Oromo">Oromo</option>
+            <option value="Tigrinya">Tigrinya</option>
+            <option value="Urdu">Urdu</option>
+            <option value="Hindi">Hindi</option>
             <option value="French">French</option>
             <option value="Spanish">Spanish</option>
+            <option value="Swahili">Swahili</option>
         </select>
+
+        <button
+            type="button"
+            id="themeToggleBtn"
+            class="theme-toggle-btn"
+            onclick="toggleTheme()"
+        >
+            Dark
+        </button>
+
         <small id="translationStatus"></small>
     `;
 
@@ -176,6 +232,7 @@ function addLanguageBar() {
 
 document.addEventListener("DOMContentLoaded", () => {
     addLanguageBar();
+    applySavedTheme();
     saveOriginalTexts();
 
     const savedLanguage = localStorage.getItem("wesiya_selected_language") || "English";
