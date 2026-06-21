@@ -38,8 +38,8 @@
                             </div>
 
                             <div class="modern-note-text-box">
-                                <p class="modern-note-text">{{ note.daily_note }}</p>
-                            </div>
+    <p class="modern-note-text">{{ note["daily_note"] }}</p>
+</div>
 
                             <div class="modern-note-footer">
                                 <span>Saved</span>
@@ -63,7 +63,7 @@
                     {% for voice in voice_notes %}
                         <div class="profile-card note-card trusted-voice-card">
                             <audio controls class="voice-player">
-                                <source src="{{ url_for('static', filename='uploads/' + voice.filename) }}" type="audio/webm">
+                                <source src="{{ url_for('static', filename='uploads/' + voice['filename']) }}" type="audio/webm">
                                 Your browser does not support audio playback.
                             </audio>
 

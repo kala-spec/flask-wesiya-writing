@@ -38,7 +38,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 # =========================
 
 def get_db_connection():
-    connection = sqlite3.connect(DATABASE)
+    connection = sqlite3.connect("wesiya.db")
     connection.row_factory = sqlite3.Row
     return connection
 
@@ -984,21 +984,60 @@ def trusted_view():
 
     owner_user_id = session["trusted_access_user_id"]
 
-    profile = get_user_profile(owner_user_id)
-    trusted_members = get_trusted_members(owner_user_id)
-    notes = get_text_notes_by_user(owner_user_id)
-    voice_notes = get_voice_notes_by_user(owner_user_id)
+    connection = get_db_connection()
+
+    profile_row = connection.execute("""
+        SELECT
+            users.id,
+            users.email,
+            COALESCE(users.full_name, user_profiles.full_name) AS full_name,
+            COALESCE(users.phone_number, user_profiles.phone_number) AS phone_number,
+            COALESCE(users.date_of_birth, user_profiles.date_of_birth) AS date_of_birth,
+            COALESCE(users.height, user_profiles.height) AS height
+        FROM users
+        LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+        WHERE users.id = ?
+        LIMIT 1
+    """, (owner_user_id,)).fetchone()
+
+    notes_rows = connection.execute("""
+        SELECT
+            id,
+            user_id,
+            daily_note,
+            created_at
+        FROM notes
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (owner_user_id,)).fetchall()
+
+    voice_rows = connection.execute("""
+        SELECT
+            id,
+            filename,
+            created_at
+        FROM voice_notes
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (owner_user_id,)).fetchall()
+
+    connection.close()
+
+    profile = dict(profile_row) if profile_row else None
+    notes = [dict(note) for note in notes_rows]
+    voice_notes = [dict(voice) for voice in voice_rows]
+
+    print("TRUSTED VIEW OWNER ID:", owner_user_id)
+    print("TRUSTED VIEW NOTES COUNT:", len(notes))
+    print("TRUSTED VIEW NOTES:", notes)
 
     return render_template(
         "trusted_view.html",
-        email=session.get("trusted_access_email"),
         owner_name=session.get("trusted_access_name"),
         profile=profile,
-        trusted_members=trusted_members,
         notes=notes,
         voice_notes=voice_notes
     )
-
 
 @app.route("/trusted-logout")
 def trusted_logout():
