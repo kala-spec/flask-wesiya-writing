@@ -673,20 +673,21 @@ def signup():
 
         for member in complete_members:
             cursor.execute("""
-                INSERT INTO trusted_members
-                (
-                    user_id,
-                    member_name,
-                    member_phone,
-                    relationship
-                )
-                VALUES (?, ?, ?, ?)
-            """, (
-                user_id,
-                member["member_name"],
-                member["member_phone"],
-                member["relationship"]
-            ))
+    INSERT INTO trusted_members
+    (
+        user_id,
+        member_name,
+        member_phone,
+        relationship,
+        created_at
+    )
+    VALUES (?, ?, ?, ?, datetime('now'))
+""", (
+    user_id,
+    member["member_name"],
+    member["member_phone"],
+    member["relationship"]
+))
 
         conn.commit()
 
@@ -736,15 +737,21 @@ def add_trusted_member():
         return redirect("/about")
 
     cursor.execute("""
-        INSERT INTO trusted_members
-        (user_id, member_name, member_phone, relationship)
-        VALUES (?, ?, ?, ?)
-    """, (
-        session["user_id"],
+    INSERT INTO trusted_members
+    (
+        user_id,
         member_name,
         member_phone,
-        relationship
-    ))
+        relationship,
+        created_at
+    )
+    VALUES (?, ?, ?, ?, datetime('now'))
+""", (
+    session["user_id"],
+    member_name,
+    member_phone,
+    relationship
+))
 
     conn.commit()
     conn.close()
