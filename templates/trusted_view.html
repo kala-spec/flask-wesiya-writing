@@ -25,26 +25,34 @@
             <p>Trusted access is read-only.</p>
         </section>
 
+        <div
+            class="profile-card no-translate"
+            style="
+                border: 2px solid red;
+                text-align: center;
+                max-width: 850px;
+                margin: 0 auto 22px auto;
+                color: #111;
+                background: #fff8f8;
+            "
+        >
+            <p><strong>Debug Owner User ID:</strong> {{ owner_user_id }}</p>
+            <p><strong>Debug Notes Count:</strong> {{ notes|length }}</p>
+        </div>
+
         <section class="trusted-read-section">
             <h2>Written Notes</h2>
 
             {% if notes %}
-                <div class="modern-notes-grid">
+                <div class="trusted-simple-notes-list no-translate">
                     {% for note in notes %}
-                        <article class="modern-note-card">
-                            <div class="modern-note-top">
-                                <span class="modern-note-label">Wesiya Note</span>
-                                <span class="modern-note-hint">Read only</span>
+                        <article class="trusted-simple-note-card">
+                            <div class="trusted-simple-note-header">
+                                <span>Wesiya Note</span>
+                                <small>{{ note["created_at"] }}</small>
                             </div>
 
-                            <div class="modern-note-text-box">
-    <p class="modern-note-text">{{ note["daily_note"] }}</p>
-</div>
-
-                            <div class="modern-note-footer">
-                                <span>Saved</span>
-                                <strong>{{ note.created_at }}</strong>
-                            </div>
+                            <p>{{ note["daily_note"] }}</p>
                         </article>
                     {% endfor %}
                 </div>
@@ -67,7 +75,7 @@
                                 Your browser does not support audio playback.
                             </audio>
 
-                            <small>{{ voice.created_at }}</small>
+                            <small>{{ voice["created_at"] }}</small>
                         </div>
                     {% endfor %}
                 </div>

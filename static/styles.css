@@ -1774,3 +1774,84 @@ body.dark-theme .trusted-owner-card {
         font-size: 22px;
     }
 }
+/* =========================
+   TRUSTED SIMPLE NOTES FIX
+   Forced visible read-only notes
+========================= */
+
+.trusted-simple-notes-list {
+    width: min(100%, 950px);
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+}
+
+.trusted-simple-note-card {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 24px rgba(55, 45, 38, 0.12);
+}
+
+.trusted-simple-note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.trusted-simple-note-header span {
+    color: var(--gold-main);
+    font-weight: 900;
+    font-size: 13px;
+}
+
+.trusted-simple-note-header small {
+    color: var(--muted-text);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.trusted-simple-note-card p {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: var(--text) !important;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.8;
+    font-weight: 500;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+body.dark-theme .trusted-simple-note-card {
+    background: var(--card-bg);
+    border-color: var(--border);
+}
+
+@media (max-width: 600px) {
+    .trusted-simple-note-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .trusted-simple-note-card {
+        padding: 15px;
+    }
+
+    .trusted-simple-note-card p {
+        font-size: 15px;
+    }
+}

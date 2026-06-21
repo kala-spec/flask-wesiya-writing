@@ -309,15 +309,14 @@ def get_text_notes_by_user(user_id):
 # VOICE FUNCTIONS
 # =========================
 
-def save_voice_note(user_id, filename, file_path):
+def save_voice_note(user_id, filename, file_path=None):
     connection = get_db_connection()
 
     connection.execute(
-        "INSERT INTO voice_notes (user_id, filename, file_path, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO voice_notes (user_id, filename, created_at) VALUES (?, ?, ?)",
         (
             user_id,
             filename,
-            file_path,
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
     )
@@ -1034,11 +1033,87 @@ def trusted_view():
     return render_template(
         "trusted_view.html",
         owner_name=session.get("trusted_access_name"),
+        owner_user_id=owner_user_id,
         profile=profile,
         notes=notes,
         voice_notes=voice_notes
     )
 
+@app.route("/trusted-debug")
+def trusted_debug():
+    if "trusted_access_user_id" not in session:
+        return "<pre>No trusted session found. Go to /trusted-access and login first.</pre>"
+
+    owner_user_id = session["trusted_access_user_id"]
+
+    connection = get_db_connection()
+
+    current_user = connection.execute("""
+        SELECT id, email, full_name
+        FROM users
+        WHERE id = ?
+    """, (owner_user_id,)).fetchone()
+
+    notes = connection.execute("""
+        SELECT id, user_id, daily_note, created_at
+        FROM notes
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (owner_user_id,)).fetchall()
+
+    all_notes = connection.execute("""
+        SELECT id, user_id, daily_note, created_at
+        FROM notes
+        ORDER BY id DESC
+        LIMIT 20
+    """).fetchall()
+
+    trusted_members = connection.execute("""
+        SELECT id, user_id, member_name, member_phone, relationship
+        FROM trusted_members
+        ORDER BY id DESC
+        LIMIT 20
+    """).fetchall()
+
+    users = connection.execute("""
+        SELECT id, email, full_name
+        FROM users
+        ORDER BY id DESC
+        LIMIT 20
+    """).fetchall()
+
+    connection.close()
+
+    def rows_to_text(rows):
+        if not rows:
+            return "No rows found."
+
+        return "\n".join(str(dict(row)) for row in rows)
+
+    html = f"""
+<pre>
+TRUSTED SESSION OWNER USER ID:
+{owner_user_id}
+
+CURRENT TRUSTED OWNER:
+{dict(current_user) if current_user else "No user found"}
+
+NOTES FOUND FOR THIS TRUSTED OWNER:
+Count: {len(notes)}
+{rows_to_text(notes)}
+
+ALL NOTES IN DATABASE:
+{rows_to_text(all_notes)}
+
+TRUSTED MEMBERS:
+{rows_to_text(trusted_members)}
+
+USERS:
+{rows_to_text(users)}
+</pre>
+    """
+
+    return html
 @app.route("/trusted-logout")
 def trusted_logout():
     session.pop("trusted_access_user_id", None)
