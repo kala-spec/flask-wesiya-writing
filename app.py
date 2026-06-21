@@ -921,11 +921,9 @@ def save_voice_recording():
 def trusted_access():
     return render_template("trusted_access.html")
 
-
 @app.route("/trusted-login", methods=["POST"])
 def trusted_login():
     owner_full_name = request.form.get("owner_full_name", "").strip()
-
     member_name = request.form.get("member_name", "").strip()
     member_phone = request.form.get("member_phone", "").strip()
     relationship = request.form.get("relationship", "").strip()
@@ -937,55 +935,47 @@ def trusted_login():
         )
 
     connection = get_db_connection()
-    owner = connection.execute("""
-    SELECT
-        users.id,
-        users.email,
-        COALESCE(users.full_name, user_profiles.full_name) AS full_name
-    FROM users
-    LEFT JOIN user_profiles ON users.id = user_profiles.user_id
-    WHERE
-        LOWER(TRIM(users.full_name)) = LOWER(TRIM(?))
-        OR LOWER(TRIM(user_profiles.full_name)) = LOWER(TRIM(?))
-    LIMIT 1
-""", (owner_full_name, owner_full_name)).fetchone()
 
-    if owner is None:
-        connection.close()
-        return render_template(
-            "trusted_access.html",
-            error="Account owner information was not found."
-        )
-
-    trusted_member = connection.execute("""
-        SELECT id
+    trusted_access = connection.execute("""
+        SELECT
+            users.id AS owner_user_id,
+            users.email,
+            COALESCE(users.full_name, user_profiles.full_name) AS owner_full_name,
+            trusted_members.id AS trusted_member_id
         FROM trusted_members
-        WHERE user_id = ?
-        AND LOWER(member_name) = LOWER(?)
-        AND member_phone = ?
-        AND LOWER(relationship) = LOWER(?)
+        JOIN users ON trusted_members.user_id = users.id
+        LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+        WHERE
+            (
+                LOWER(TRIM(users.full_name)) = LOWER(TRIM(?))
+                OR LOWER(TRIM(user_profiles.full_name)) = LOWER(TRIM(?))
+            )
+            AND LOWER(TRIM(trusted_members.member_name)) = LOWER(TRIM(?))
+            AND TRIM(trusted_members.member_phone) = TRIM(?)
+            AND LOWER(TRIM(trusted_members.relationship)) = LOWER(TRIM(?))
         LIMIT 1
     """, (
-        owner["id"],
+        owner_full_name,
+        owner_full_name,
         member_name,
         member_phone,
         relationship
     )).fetchone()
 
-    if trusted_member is None:
+    if trusted_access is None:
         connection.close()
         return render_template(
             "trusted_access.html",
-            error="Trusted member information does not match this account."
+            error="Trusted access information does not match any account."
         )
 
-    session["trusted_access_user_id"] = owner["id"]
-    session["trusted_access_name"] = owner["full_name"]
+    session["trusted_access_user_id"] = trusted_access["owner_user_id"]
+    session["trusted_access_name"] = trusted_access["owner_full_name"]
+    session["trusted_access_email"] = trusted_access["email"]
 
     connection.close()
 
     return redirect(url_for("trusted_view"))
-
 
 @app.route("/trusted-view")
 def trusted_view():
