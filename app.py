@@ -919,12 +919,17 @@ def trusted_access():
 
 @app.route("/trusted-login", methods=["POST"])
 def trusted_login():
-    owner_full_name = request.form.get("owner_full_name")
-    owner_email = request.form.get("owner_email")
+    owner_full_name = request.form.get("owner_full_name", "").strip()
 
-    member_name = request.form.get("member_name")
-    member_phone = request.form.get("member_phone")
-    relationship = request.form.get("relationship")
+    member_name = request.form.get("member_name", "").strip()
+    member_phone = request.form.get("member_phone", "").strip()
+    relationship = request.form.get("relationship", "").strip()
+
+    if not owner_full_name or not member_name or not member_phone or not relationship:
+        return render_template(
+            "trusted_access.html",
+            error="Please complete all required fields."
+        )
 
     connection = get_db_connection()
 
@@ -932,9 +937,9 @@ def trusted_login():
         SELECT users.id, users.email, user_profiles.full_name
         FROM users
         JOIN user_profiles ON users.id = user_profiles.user_id
-        WHERE users.email = ?
-        AND LOWER(user_profiles.full_name) = LOWER(?)
-    """, (owner_email, owner_full_name)).fetchone()
+        WHERE LOWER(user_profiles.full_name) = LOWER(?)
+        LIMIT 1
+    """, (owner_full_name,)).fetchone()
 
     if owner is None:
         connection.close()
@@ -944,11 +949,13 @@ def trusted_login():
         )
 
     trusted_member = connection.execute("""
-        SELECT * FROM trusted_members
+        SELECT id
+        FROM trusted_members
         WHERE user_id = ?
         AND LOWER(member_name) = LOWER(?)
         AND member_phone = ?
         AND LOWER(relationship) = LOWER(?)
+        LIMIT 1
     """, (
         owner["id"],
         member_name,
@@ -956,17 +963,17 @@ def trusted_login():
         relationship
     )).fetchone()
 
-    connection.close()
-
     if trusted_member is None:
+        connection.close()
         return render_template(
             "trusted_access.html",
-            error="Trusted member information does not match our records."
+            error="Trusted member information does not match this account."
         )
 
     session["trusted_access_user_id"] = owner["id"]
-    session["trusted_access_email"] = owner["email"]
     session["trusted_access_name"] = owner["full_name"]
+
+    connection.close()
 
     return redirect(url_for("trusted_view"))
 

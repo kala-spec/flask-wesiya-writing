@@ -1,22 +1,18 @@
 // ======================================================
 // Wesiya AI Translation + Theme Toggle
-// Uses Flask backend + Gemini API.
-// Caches translations in localStorage.
-// Translates text, labels, links, and buttons safely.
+// Stable version:
+// - Translates text and form placeholders
+// - Saves selected language and theme
+// - Does NOT cache translated text
+// - Keeps layout stable
 // ======================================================
 
 const originalTextMap = new Map();
 
-function getPageName() {
-    return window.location.pathname || "/";
-}
+function getTranslatableItems() {
+    const items = [];
 
-function getCacheKey(targetLanguage) {
-    return `wesiya_translation_${getPageName()}_${targetLanguage}`;
-}
-
-function getTranslatableElements() {
-    return Array.from(
+    const textElements = Array.from(
         document.querySelectorAll("h1, h2, h3, h4, p, label, span, small, button, a")
     ).filter((element) => {
         const text = element.innerText.trim();
@@ -24,55 +20,116 @@ function getTranslatableElements() {
         if (!text) return false;
         if (text.length > 350) return false;
 
-        // Do not translate the language/theme bar itself
+        // Do not translate language/theme bar
         if (element.closest(".no-translate")) return false;
         if (element.classList.contains("no-translate")) return false;
 
-        // Allow clickable elements themselves
+        // Allow links and buttons themselves
         if (element.matches("a, button")) return true;
 
-        // But do not translate parent elements that contain clickable controls
+        // Do not translate parent elements that contain controls
         if (element.querySelector("a, button, input, textarea, select")) return false;
 
         return true;
     });
+
+    textElements.forEach((element) => {
+        items.push({
+            element: element,
+            type: "text",
+            value: element.innerText.trim()
+        });
+    });
+
+    const placeholderElements = Array.from(
+        document.querySelectorAll("input[placeholder], textarea[placeholder]")
+    ).filter((element) => {
+        const placeholder = element.getAttribute("placeholder");
+
+        if (!placeholder) return false;
+        if (!placeholder.trim()) return false;
+        if (placeholder.length > 200) return false;
+
+        // Do not translate language bar controls
+        if (element.closest(".no-translate")) return false;
+
+        // Do not translate hidden/file inputs
+        if (element.type === "hidden") return false;
+        if (element.type === "file") return false;
+
+        return true;
+    });
+
+    placeholderElements.forEach((element) => {
+        items.push({
+            element: element,
+            type: "placeholder",
+            value: element.getAttribute("placeholder").trim()
+        });
+    });
+
+    return items;
 }
 
 function saveOriginalTexts() {
-    getTranslatableElements().forEach((element) => {
-        if (!originalTextMap.has(element)) {
-            originalTextMap.set(element, element.innerText.trim());
+    getTranslatableItems().forEach((item) => {
+        if (!originalTextMap.has(item.element)) {
+            if (item.type === "placeholder") {
+                originalTextMap.set(item.element, {
+                    type: "placeholder",
+                    value: item.element.getAttribute("placeholder")
+                });
+            } else {
+                originalTextMap.set(item.element, {
+                    type: "text",
+                    value: item.element.innerText.trim()
+                });
+            }
         }
     });
 }
 
 function restoreEnglish() {
-    getTranslatableElements().forEach((element) => {
-        if (originalTextMap.has(element)) {
-            element.innerText = originalTextMap.get(element);
+    getTranslatableItems().forEach((item) => {
+        const original = originalTextMap.get(item.element);
+
+        if (!original) return;
+
+        if (original.type === "placeholder") {
+            item.element.setAttribute("placeholder", original.value);
+        } else {
+            item.element.innerText = original.value;
         }
+
+        item.element.removeAttribute("dir");
+        item.element.classList.remove("translated-rtl-text");
     });
 
     document.documentElement.dir = "ltr";
     document.body.classList.remove("rtl-page");
 }
 
-function applyTranslations(translations, targetLanguage) {
-    const elements = getTranslatableElements();
+function applyTranslations(translations) {
+    const items = getTranslatableItems();
 
     translations.forEach((translatedText, index) => {
-        if (elements[index] && translatedText) {
-            elements[index].innerText = translatedText;
+        const item = items[index];
+
+        if (!item || !translatedText) return;
+
+        if (item.type === "placeholder") {
+            item.element.setAttribute("placeholder", translatedText);
+        } else {
+            item.element.innerText = translatedText;
         }
+
+        // Keep layout stable
+        item.element.removeAttribute("dir");
+        item.element.classList.remove("translated-rtl-text");
     });
 
-    if (targetLanguage === "Arabic" || targetLanguage === "Urdu") {
-        document.documentElement.dir = "rtl";
-        document.body.classList.add("rtl-page");
-    } else {
-        document.documentElement.dir = "ltr";
-        document.body.classList.remove("rtl-page");
-    }
+    document.documentElement.dir = "ltr";
+    document.body.classList.remove("rtl-page");
 }
 
 function setTranslationLoading(isLoading) {
@@ -94,22 +151,14 @@ async function translatePage(targetLanguage) {
         return;
     }
 
-    const cacheKey = getCacheKey(targetLanguage);
-    const cachedTranslations = localStorage.getItem(cacheKey);
+    restoreEnglish();
+    saveOriginalTexts();
 
-    if (cachedTranslations) {
-        try {
-            applyTranslations(JSON.parse(cachedTranslations), targetLanguage);
-            return;
-        } catch (error) {
-            localStorage.removeItem(cacheKey);
-        }
-    }
+    const items = getTranslatableItems();
 
-    const elements = getTranslatableElements();
-
-    const texts = elements.map((element) => {
-        return originalTextMap.get(element) || element.innerText.trim();
+    const texts = items.map((item) => {
+        const original = originalTextMap.get(item.element);
+        return original ? original.value : item.value;
     });
 
     if (texts.length === 0) {
@@ -138,8 +187,7 @@ async function translatePage(targetLanguage) {
             return;
         }
 
-        localStorage.setItem(cacheKey, JSON.stringify(data.translations));
-        applyTranslations(data.translations, targetLanguage);
+        applyTranslations(data.translations);
 
     } catch (error) {
         console.log("Translation error:", error);
@@ -243,6 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (savedLanguage !== "English") {
-        translatePage(savedLanguage);
+        setTimeout(() => {
+            translatePage(savedLanguage);
+        }, 300);
     }
 });

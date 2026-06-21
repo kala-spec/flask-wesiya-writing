@@ -1038,7 +1038,7 @@ html[dir="rtl"] .profile-header {
     }
 }
 /* =========================
-   PASSWORD SHOW / HIDE
+   PASSWORD EYE TOGGLE
 ========================= */
 
 .password-wrapper {
@@ -1049,26 +1049,43 @@ html[dir="rtl"] .profile-header {
 
 .password-wrapper input {
     margin-bottom: 0;
-    padding-right: 82px;
+    padding-right: 56px;
 }
 
 .password-toggle-btn {
     position: absolute;
-    right: 8px;
+    right: 9px;
     top: 50%;
     transform: translateY(-50%);
-    width: auto !important;
-    min-width: 58px;
+    width: 38px !important;
+    min-width: 38px;
+    max-width: 38px;
     min-height: 34px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--green-dark);
-    color: white;
-    font-size: 12px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--title);
+    font-size: 18px;
+    line-height: 1;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .password-toggle-btn:hover {
-    background: var(--gold-main);
+    background: rgba(181, 138, 0, 0.12);
+}
+
+body.dark-theme .password-toggle-btn {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+}
+
+body.dark-theme .password-toggle-btn:hover {
+    background: rgba(214, 166, 0, 0.16);
 }
 
 /* =========================
@@ -1188,13 +1205,14 @@ body.dark-theme .note-action-menu {
     background: var(--card-bg);
     border-color: var(--border);
 }
+
 /* =========================
-   MODERN READ-ONLY NOTES
+   CLEAN MODERN NOTE DESIGN
 ========================= */
 
 .modern-notes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
     gap: 18px;
     max-width: 1050px;
     margin: 0 auto;
@@ -1203,10 +1221,10 @@ body.dark-theme .note-action-menu {
 .modern-note-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 22px;
     padding: 18px;
     box-shadow: 0 12px 28px rgba(55, 45, 38, 0.12);
-    transition: 0.2s;
+    transition: 0.2s ease;
 }
 
 .modern-note-card:hover {
@@ -1231,10 +1249,11 @@ body.dark-theme .note-action-menu {
     background: rgba(181, 138, 0, 0.12);
     color: var(--gold-main);
     border: 1px solid rgba(181, 138, 0, 0.25);
-    padding: 6px 10px;
+    padding: 6px 11px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 800;
+    letter-spacing: 0.2px;
 }
 
 .modern-note-hint {
@@ -1244,27 +1263,34 @@ body.dark-theme .note-action-menu {
 }
 
 .modern-note-text-box {
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.72);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 14px;
+    border-radius: 18px;
+    padding: 16px;
     min-height: 95px;
-    max-height: 180px;
+    max-height: 190px;
     overflow-y: auto;
+    text-align: left;
 }
 
 .modern-note-text {
+    margin: 0;
     color: var(--text);
-    line-height: 1.7;
-    font-size: 15px;
+    font-size: 15.5px;
+    line-height: 1.75;
+    font-weight: 500;
     white-space: pre-wrap;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: left;
+    direction: auto;
+    unicode-bidi: plaintext;
 }
 
 .modern-note-footer {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid var(--border);
+    border-top: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1273,17 +1299,112 @@ body.dark-theme .note-action-menu {
     font-size: 12px;
 }
 
+.modern-note-footer span {
+    font-weight: 700;
+    color: var(--muted-text);
+}
+
 .modern-note-footer strong {
     color: var(--title);
     font-size: 12px;
+    font-weight: 800;
     text-align: right;
 }
 
+/* Better scroll style inside note box */
+.modern-note-text-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modern-note-text-box::-webkit-scrollbar-thumb {
+    background: rgba(181, 138, 0, 0.35);
+    border-radius: 999px;
+}
+
+.modern-note-text-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Edit box still clean */
 .note-edit-box {
     display: none;
     margin-top: 18px;
     padding-top: 18px;
     border-top: 1px solid var(--border);
+}
+
+.note-edit-box textarea {
+    min-height: 160px;
+    line-height: 1.7;
+}
+
+/* Dark mode */
+body.dark-theme .modern-note-card {
+    background: var(--card-bg);
+    border-color: var(--border);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+body.dark-theme .modern-note-text-box {
+    background: rgba(17, 24, 39, 0.78);
+    border-color: var(--border);
+}
+
+body.dark-theme .modern-note-label {
+    background: rgba(214, 166, 0, 0.14);
+    color: var(--gold-main);
+    border-color: rgba(214, 166, 0, 0.3);
+}
+
+/* Translation should not break note alignment */
+.translated-rtl-text .modern-note-text,
+html[dir="rtl"] .modern-note-text,
+.rtl-page .modern-note-text {
+    direction: auto !important;
+    unicode-bidi: plaintext !important;
+}
+
+/* Mobile note layout */
+@media (max-width: 600px) {
+    .modern-notes-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .modern-note-card {
+        padding: 15px;
+        border-radius: 20px;
+    }
+
+    .modern-note-top {
+        align-items: flex-start;
+    }
+
+    .modern-note-label,
+    .modern-note-hint {
+        font-size: 11px;
+    }
+
+    .modern-note-text-box {
+        min-height: 85px;
+        max-height: 165px;
+        padding: 14px;
+    }
+
+    .modern-note-text {
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    .modern-note-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .modern-note-footer strong {
+        text-align: left;
+    }
 }
 
 /* Dark mode support for modern notes */
@@ -1504,4 +1625,57 @@ body.dark-theme .more-nav-menu a {
     .more-nav-btn {
         font-size: 12px;
     }
+}
+/* =========================
+   STABLE TRANSLATION LAYOUT FIX
+   Keeps Arabic/Urdu text readable without moving page layout
+========================= */
+
+.translated-rtl-text {
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: plaintext;
+}
+
+/* Stop RTL from reversing major layout sections */
+html[dir="rtl"] body,
+.rtl-page {
+    direction: ltr !important;
+    text-align: inherit !important;
+}
+
+html[dir="rtl"] .pages ul,
+html[dir="rtl"] .profile-header {
+    direction: ltr !important;
+    flex-direction: initial !important;
+}
+/* =========================
+   FORCE TRANSLATION LAYOUT STABILITY
+   Translation changes words only, not page structure
+========================= */
+
+html,
+body {
+    direction: ltr !important;
+}
+
+.rtl-page {
+    direction: ltr !important;
+    text-align: inherit !important;
+}
+
+.translated-rtl-text {
+    direction: inherit !important;
+    text-align: inherit !important;
+}
+
+html[dir="rtl"] body,
+html[dir="rtl"] .pages,
+html[dir="rtl"] .pages ul,
+html[dir="rtl"] .profile-header,
+html[dir="rtl"] .modern-note-text-box,
+html[dir="rtl"] .modern-note-text {
+    direction: ltr !important;
+    text-align: inherit !important;
+    flex-direction: initial !important;
 }

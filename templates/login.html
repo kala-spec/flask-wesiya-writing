@@ -50,12 +50,13 @@
                     >
 
                     <button
-                        type="button"
-                        class="password-toggle-btn"
-                        onclick="togglePassword('signupPassword', this)"
-                    >
-                        Show
-                    </button>
+    type="button"
+    class="password-toggle-btn"
+    onclick="togglePassword('signupPassword', this)"
+    aria-label="Show password"
+>
+    👁
+</button>
                 </div>
 
                 <h3 class="form-section-title">Personal Information</h3>
@@ -153,12 +154,13 @@
                     >
 
                     <button
-                        type="button"
-                        class="password-toggle-btn"
-                        onclick="togglePassword('loginPassword', this)"
-                    >
-                        Show
-                    </button>
+    type="button"
+    class="password-toggle-btn"
+    onclick="togglePassword('loginPassword', this)"
+    aria-label="Show password"
+>
+    👁
+</button>
                 </div>
 
                 <button type="submit" class="main-submit-btn">Login</button>
@@ -215,22 +217,23 @@
             signupBox.style.display = "none";
             loginBox.style.display = "block";
         }
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
 
-        function togglePassword(inputId, button) {
-            const input = document.getElementById(inputId);
+    if (!input) {
+        return;
+    }
 
-            if (!input) {
-                return;
-            }
-
-            if (input.type === "password") {
-                input.type = "text";
-                button.innerText = "Hide";
-            } else {
-                input.type = "password";
-                button.innerText = "Show";
-            }
-        }
+    if (input.type === "password") {
+        input.type = "text";
+        button.innerText = "🙈";
+        button.setAttribute("aria-label", "Hide password");
+    } else {
+        input.type = "password";
+        button.innerText = "👁";
+        button.setAttribute("aria-label", "Show password");
+    }
+}
 
         const defaultForm = "{{ default_form or 'login' }}";
 
