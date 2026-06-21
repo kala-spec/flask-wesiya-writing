@@ -1010,10 +1010,10 @@ def trusted_view():
 @app.route("/trusted-logout")
 def trusted_logout():
     session.pop("trusted_access_user_id", None)
-    session.pop("trusted_access_email", None)
     session.pop("trusted_access_name", None)
+    session.pop("trusted_access_email", None)
 
-    return redirect(url_for("login"))
+    return redirect(url_for("trusted_access"))
 
 # =========================
 # REACT API ROUTES

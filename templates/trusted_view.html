@@ -9,107 +9,68 @@
 
 <body>
 
-    <nav class="pages compact-pages">
-    <ul class="main-nav-links">
-        <li>
-            <a href="/home">Home</a>
-        </li>
+    <header class="trusted-read-header">
+        <div>
+            <h1>Trusted View</h1>
+            <p>You can only read saved notes and listen to voice updates.</p>
+        </div>
 
-        <li>
-            <a href="/dashboard">New Wesiya</a>
-        </li>
+        <a href="/trusted-logout" class="trusted-exit-btn">Exit</a>
+    </header>
 
-        <li>
-            <a href="/profile">My Wesiya</a>
-        </li>
+    <main class="trusted-read-wrapper">
 
-        <li class="more-nav-wrapper">
-            <button
-                type="button"
-                class="more-nav-btn"
-                onclick="toggleMoreMenu(event)"
-                aria-label="More menu"
-            >
-                ⋮
-            </button>
+        <section class="trusted-owner-card">
+            <h2>{{ owner_name if owner_name else "Account Owner" }}</h2>
+            <p>Trusted access is read-only.</p>
+        </section>
 
-            <div class="more-nav-menu" id="moreNavMenu">
-                <a href="/about">About</a>
-                <a href="/logout" class="logout-link">Logout</a>
-            </div>
-        </li>
-    </ul>
-</nav>
-
-    <section class="dashboard-header">
-        <h1>Trusted Access for {{ owner_name }}</h1>
-        <p>This is a read-only view for registered trusted or family members.</p>
-    </section>
-
-    <main class="profile-wrapper">
-
-        {% if profile %}
-            <div class="profile-card note-card">
-                <h2>Account Owner Information</h2>
-
-                <div class="profile-row">
-                    <span>Email</span>
-                    <p>{{ email }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Full Name</span>
-                    <p>{{ profile.full_name }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Phone Number</span>
-                    <p>{{ profile.phone_number }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Date of Birth</span>
-                    <p>{{ profile.date_of_birth }}</p>
-                </div>
-
-                <div class="profile-row">
-                    <span>Height</span>
-                    <p>{{ profile.height }}</p>
-                </div>
-            </div>
-        {% endif %}
-
-        <section class="notes-section">
-            <h2>Writing Updates</h2>
+        <section class="trusted-read-section">
+            <h2>Written Notes</h2>
 
             {% if notes %}
-                {% for note in notes %}
-                    <div class="profile-card note-card">
-                        <p>{{ note.daily_note }}</p>
-                        <small>{{ note.created_at }}</small>
-                    </div>
-                {% endfor %}
+                <div class="modern-notes-grid">
+                    {% for note in notes %}
+                        <article class="modern-note-card">
+                            <div class="modern-note-top">
+                                <span class="modern-note-label">Wesiya Note</span>
+                                <span class="modern-note-hint">Read only</span>
+                            </div>
+
+                            <div class="modern-note-text-box">
+                                <p class="modern-note-text">{{ note.daily_note }}</p>
+                            </div>
+
+                            <div class="modern-note-footer">
+                                <span>Saved</span>
+                                <strong>{{ note.created_at }}</strong>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
             {% else %}
                 <div class="profile-card empty-profile">
-                    <p>No writing updates found.</p>
+                    <p>No written notes found.</p>
                 </div>
             {% endif %}
         </section>
 
-        <section class="notes-section">
-            <h2>Voice Updates</h2>
+        <section class="trusted-read-section">
+            <h2>Voice Notes</h2>
 
             {% if voice_notes %}
-                {% for voice in voice_notes %}
-                    <div class="profile-card note-card">
-                        <p>{{ voice.filename }}</p>
-                        <audio controls class="voice-player">
-    <source src="{{ url_for('static', filename='uploads/' + voice.filename) }}" type="audio/webm">
-    Your browser does not support audio playback.
-</audio>
-                        <small>{{ voice.created_at }}</small>
-                    </div>
-                {% endfor %}
+                <div class="trusted-voice-list">
+                    {% for voice in voice_notes %}
+                        <div class="profile-card note-card trusted-voice-card">
+                            <audio controls class="voice-player">
+                                <source src="{{ url_for('static', filename='uploads/' + voice.filename) }}" type="audio/webm">
+                                Your browser does not support audio playback.
+                            </audio>
+
+                            <small>{{ voice.created_at }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
             {% else %}
                 <div class="profile-card empty-profile">
                     <p>No voice updates found.</p>
@@ -119,26 +80,6 @@
 
     </main>
 
-    <script>
-    function toggleMoreMenu(event) {
-        event.stopPropagation();
-
-        const menu = document.getElementById("moreNavMenu");
-
-        if (menu) {
-            menu.classList.toggle("show-more-nav-menu");
-        }
-    }
-
-    document.addEventListener("click", function () {
-        const menu = document.getElementById("moreNavMenu");
-
-        if (menu) {
-            menu.classList.remove("show-more-nav-menu");
-        }
-    });
-</script>
-
-<script src="{{ url_for('static', filename='translator.js') }}"></script>
+    <script src="{{ url_for('static', filename='translator.js') }}"></script>
 </body>
 </html>
