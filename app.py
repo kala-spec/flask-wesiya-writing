@@ -291,14 +291,17 @@ def get_text_notes_by_user(user_id):
     connection = get_db_connection()
 
     notes = connection.execute("""
-        SELECT notes.id, notes.daily_note, notes.created_at, users.email
+        SELECT
+            id,
+            daily_note,
+            created_at
         FROM notes
-        JOIN users ON notes.user_id = users.id
-        WHERE notes.user_id = ?
-        ORDER BY notes.id DESC
+        WHERE user_id = ?
+        ORDER BY id DESC
     """, (user_id,)).fetchall()
 
     connection.close()
+
     return notes
 
 
