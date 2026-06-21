@@ -103,9 +103,10 @@
                 {% for voice in voice_notes %}
                     <div class="profile-card note-card">
                         <p>{{ voice.filename }}</p>
-                        <audio controls>
-                            <source src="/uploads/{{ voice.filename }}" type="audio/webm">
-                        </audio>
+                        <audio controls class="voice-player">
+    <source src="{{ url_for('static', filename='uploads/' + voice.filename) }}" type="audio/webm">
+    Your browser does not support audio playback.
+</audio>
                         <small>{{ voice.created_at }}</small>
                     </div>
                 {% endfor %}

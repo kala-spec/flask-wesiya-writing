@@ -327,15 +327,17 @@ def get_voice_notes_by_user(user_id):
     connection = get_db_connection()
 
     voice_notes = connection.execute("""
-        SELECT voice_notes.id, voice_notes.filename, voice_notes.file_path,
-               voice_notes.created_at, users.email
+        SELECT
+            id,
+            filename,
+            created_at
         FROM voice_notes
-        JOIN users ON voice_notes.user_id = users.id
-        WHERE voice_notes.user_id = ?
-        ORDER BY voice_notes.id DESC
+        WHERE user_id = ?
+        ORDER BY id DESC
     """, (user_id,)).fetchall()
 
     connection.close()
+
     return voice_notes
 
 
