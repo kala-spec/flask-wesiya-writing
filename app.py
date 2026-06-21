@@ -932,14 +932,18 @@ def trusted_login():
         )
 
     connection = get_db_connection()
-
     owner = connection.execute("""
-        SELECT users.id, users.email, user_profiles.full_name
-        FROM users
-        JOIN user_profiles ON users.id = user_profiles.user_id
-        WHERE LOWER(user_profiles.full_name) = LOWER(?)
-        LIMIT 1
-    """, (owner_full_name,)).fetchone()
+    SELECT
+        users.id,
+        users.email,
+        COALESCE(users.full_name, user_profiles.full_name) AS full_name
+    FROM users
+    LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+    WHERE
+        LOWER(TRIM(users.full_name)) = LOWER(TRIM(?))
+        OR LOWER(TRIM(user_profiles.full_name)) = LOWER(TRIM(?))
+    LIMIT 1
+""", (owner_full_name, owner_full_name)).fetchone()
 
     if owner is None:
         connection.close()
