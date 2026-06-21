@@ -1114,6 +1114,7 @@ USERS:
     """
 
     return html
+
 @app.route("/trusted-logout")
 def trusted_logout():
     session.pop("trusted_access_user_id", None)
